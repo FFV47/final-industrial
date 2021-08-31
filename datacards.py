@@ -1,5 +1,7 @@
+import traceback
 from kivymd.uix.card import MDCard
 from pyModbusTCP.client import ModbusClient
+from threading import Lock
 
 
 class DataCard(MDCard):
@@ -10,20 +12,29 @@ class DataCard(MDCard):
         self.title = tag["description"]
         self._client = client
         super().__init__(**kwargs)
+        self._lock = Lock()
 
     def update_data(self, dt):
         try:
             if self._client.is_open():
-                self.set_data(self._read_data(self.tag["address"], 1)[0])
+                self._lock.acquire()
+                new_data = self._read_data(self.tag["addr"], 1)
+                self._lock.release()
+                if new_data != None:
+                    new_data = new_data[0]
+                    if self.tag['type'] != 'coil':
+                        new_data /= self.tag['mult']
+                    self.set_data(new_data)
         except Exception as e:
             print("Erro ao realizar a leitura do dado -> ")
             for e in e.args:
                 print(e)
+            traceback.print_exc()
 
     def write_data(self):
         try:
             if self._client.is_open():
-                self._write_data_fcn(self.tag["address"], self.get_data())
+                self._write_data_fcn(self.tag["addr"], self.get_data())
         except Exception as e:
             print("Erro ao realizar a escrita do dado -> ")
             for e in e.args:

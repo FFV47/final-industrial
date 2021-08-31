@@ -1,14 +1,14 @@
 #:kivy 2.0.0
 
-<MyWidget>:
+<MainWidget>:
     BoxLayout:
         orientation: 'vertical'
         MDToolbar:
             title: 'Informática Industrial'
         MDBottomNavigation:
             panel_color: app.theme_cls.accent_color
-            text_color_normal: 0.4, 0.4, 0.4, 1
-            text_color_active: 0.8, 0.8, 0.8, 1
+            # text_color_normal: "Blue"
+            # text_color_active: 0.8, 0.8, 0.8, 1
             MDBottomNavigationItem:
                 name: 'config'
                 text: 'Configurações'
@@ -19,7 +19,7 @@
                     padding: '20dp'
                     spacing: '50dp'
                     Image:
-                        source: 'logo-modbus.jpg'
+                        source: 'imgs/logo-modbus.png'
                         pos_hint: {'center_x': 0.5, 'center_y': 0.5}
                         size_hint: (0.5, 0.2)
                     MDTextField:
@@ -31,19 +31,17 @@
                         pos_hint: {'center_x': 0.5, 'center_y': 0.5}
                     MDTextField:
                         id: port
-                        text: '40000'
+                        text: '502'
                         hint_text: 'Porta'
                         size_hint: (0.2, None)
                         height: '50dp'
                         pos_hint: {'center_x': 0.5, 'center_y': 0.5}
                     MDRoundFlatIconButton:
-                        id: bt_connect
+                        id: bt_con
                         text: 'CONECTAR'
                         icon: 'lan-connect'
                         pos_hint: {'center_x': 0.5, 'center_y': 0.5}
                         on_press: root.connect()
-
-
             MDBottomNavigationItem:
                 name: 'data'
                 text: 'Dados'
@@ -60,7 +58,21 @@
                         padding: 0.05 * (Window.width), '150dp'
                         spacing: (Window.width / 5 - 2 * (0.05 * Window.width)) / 3
                         adaptive_height: True
-
+                MDFloatingActionButtonSpeedDial:
+                    data: root.tag_types
+                    root_button_anim: True
+                    label_text_color: [1,1,1,1]
+                    # callback: root.new_tag_dialog
+            MDBottomNavigationItem:
+                name: 'anim'
+                text: 'Planta'
+                icon: 'factory'
+                FloatLayout:    
+                    id: desenho               
+                    # canvas:
+                    #     Color:
+                    #         rgba: 0, 0, 0.5, 0.9
+                    
 
 <DataCard>:
     orientation: 'vertical'
