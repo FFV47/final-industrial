@@ -1,6 +1,7 @@
 from copy import Error
 import traceback
 from kivymd.uix import boxlayout
+from kivymd.uix.behaviors import backgroundcolor_behavior
 from kivymd.uix.screen import MDScreen
 # from kivymd.uix.boxlayout import BoxLayout
 from pyModbusTCP.client import ModbusClient
@@ -15,6 +16,8 @@ from kivy.clock import Clock
 from kivy.graphics.vertex_instructions import RoundedRectangle
 from kivy.graphics import Rectangle, Color
 from kivy.uix.widget import Widget
+from kivy.properties import ListProperty
+import json
 
 
 class MyRoundedRectangle(RoundedRectangle):
@@ -29,6 +32,9 @@ class MyRoundedRectangle(RoundedRectangle):
                         parent_size[1]*self.pos_hint['center_y'] - self.size[1]/2)   
 
 class CanvasWidget(Widget):
+
+    background_color = ListProperty((0.5,0.5,0.5,1))
+    color_property = ListProperty((1,0,0,1))
       
     def __init__(self, size, pos_hint, radius, **kwargs):
   
@@ -37,8 +43,7 @@ class CanvasWidget(Widget):
         # Arranging Canvas
         with self.canvas:
   
-            self.color = [1, 0, 0, 1]
-            Color(rgba=self.color)  # set the colour 
+            self.rect_color = Color(rgba=(1,0,0,1))  # set the colour 
   
             # Seting the size and position of image
             # image must be in same folder 
@@ -58,6 +63,9 @@ class CanvasWidget(Widget):
         
         # self.rect.size = self.size
 
+    def update_color(self,color):
+        self.rect_color.rgba = color
+
 
 class MainWidget(MDScreen):
 
@@ -67,44 +75,51 @@ class MainWidget(MDScreen):
                     'Holding Register': 'alpha-h-circle',
                     'Coil':             'electric-switch'}
 
-    _tags = [   {'description':'estado_atuador', 'addr': 801, 'type': 'coil', 'mult': None},
-                {'description':'bt_on_off','addr':802, 'type': 'coil', 'mult': None},
-                {'description':'t_part','addr':798, 'type': 'holding', 'mult': 10},
-                {'description':'freq_des','addr':799, 'type': 'holding', 'mult': 1},
-                {'description':'freq_mot','addr':800, 'type': 'input', 'mult': 10},
-                {'description':'tensao','addr':801, 'type': 'input', 'mult': 1},
-                {'description':'rotacao','addr':803, 'type': 'input', 'mult': 1},
-                {'description':'pot_entrada','addr':804, 'type': 'input', 'mult': 10},
-                {'description':'corrente','addr':805, 'type': 'input', 'mult': 100},
-                {'description':'temp_estator','addr':806, 'type': 'input', 'mult': 10},
-                {'description':'vel_esteira','addr':807, 'type': 'input', 'mult': 100},
-                {'description':'carga','addr':808, 'type': 'input', 'mult': 100},
-                {'description':'peso_obj','addr':809, 'type': 'input', 'mult': 1},
-                {'description': 'cor_obj_R','addr':810, 'type': 'input', 'mult': 1},
-                {'description': 'cor_obj_G','addr':811, 'type': 'input', 'mult': 1},
-                {'description':'cor_obj_B','addr':812, 'type': 'input', 'mult': 1},
+    with open('tags.txt') as tags_file:
+        _tags = json.load(tags_file)
+        print(_tags)
 
-                {'description': 'numObj_est_1','addr':813, 'type': 'input', 'mult': 1},
-                {'description': 'numObj_est_2','addr':814, 'type': 'input', 'mult': 1},
-                {'description': 'numObj_est_3','addr':815, 'type': 'input', 'mult': 1},
-                {'description': 'numObj_est_nc','addr':816, 'type': 'input', 'mult': 1},
-                {'description': 'filtro_est_1','addr':901, 'type': 'coil', 'mult': None},
-                {'description': 'filtro_est_2','addr':902, 'type': 'coil', 'mult': None},
-                {'description': 'filtro_est_3','addr':903, 'type': 'coil', 'mult': None},
+    # _tags = [   {'description':'estado_atuador', 'addr': 801, 'type': 'coil', 'mult': None},
+    #             {'description':'bt_on_off','addr':802, 'type': 'coil', 'mult': None},
+    #             {'description':'t_part','addr':798, 'type': 'holding', 'mult': 10},
+    #             {'description':'freq_des','addr':799, 'type': 'holding', 'mult': 1},
+    #             {'description':'freq_mot','addr':800, 'type': 'input', 'mult': 10},
+    #             {'description':'tensao','addr':801, 'type': 'input', 'mult': 1},
+    #             {'description':'rotacao','addr':803, 'type': 'input', 'mult': 1},
+    #             {'description':'pot_entrada','addr':804, 'type': 'input', 'mult': 10},
+    #             {'description':'corrente','addr':805, 'type': 'input', 'mult': 100},
+    #             {'description':'temp_estator','addr':806, 'type': 'input', 'mult': 10},
+    #             {'description':'vel_esteira','addr':807, 'type': 'input', 'mult': 100},
+    #             {'description':'carga','addr':808, 'type': 'input', 'mult': 100},
+    #             {'description':'peso_obj','addr':809, 'type': 'input', 'mult': 1},
+    #             {'description': 'cor_obj_R','addr':810, 'type': 'input', 'mult': 1},
+    #             {'description': 'cor_obj_G','addr':811, 'type': 'input', 'mult': 1},
+    #             {'description':'cor_obj_B','addr':812, 'type': 'input', 'mult': 1},
 
-                {'description': 'filtro_cor_r_1','addr':1001, 'type': 'holding', 'mult': 1},
-                {'description': 'filtro_cor_g_1','addr':1002, 'type': 'holding', 'mult': 1},
-                {'description': 'filtro_cor_b_1','addr':1003, 'type': 'holding', 'mult': 1},
-                {'description': 'filtro_massa_1','addr':1004, 'type': 'holding', 'mult': 1},
-                {'description': 'filtro_cor_r_2','addr':1011, 'type': 'holding', 'mult': 1},
-                {'description': 'filtro_cor_g_2','addr':1012, 'type': 'holding', 'mult': 1},
-                {'description': 'filtro_cor_b_2','addr':1013, 'type': 'holding', 'mult': 1},
-                {'description': 'filtro_massa_2','addr':1014, 'type': 'holding', 'mult': 1},
-                {'description': 'filtro_cor_r_3','addr':1021, 'type': 'holding', 'mult': 1},
-                {'description': 'filtro_cor_g_3','addr':1022, 'type': 'holding', 'mult': 1},
-                {'description': 'filtro_cor_b_3','addr':1023, 'type': 'holding', 'mult': 1},
-                {'description': 'filtro_massa_3','addr':1024, 'type': 'holding', 'mult': 1},
-    ]
+    #             {'description': 'numObj_est_1','addr':813, 'type': 'input', 'mult': 1},
+    #             {'description': 'numObj_est_2','addr':814, 'type': 'input', 'mult': 1},
+    #             {'description': 'numObj_est_3','addr':815, 'type': 'input', 'mult': 1},
+    #             {'description': 'numObj_est_nc','addr':816, 'type': 'input', 'mult': 1},
+    #             {'description': 'filtro_est_1','addr':901, 'type': 'coil', 'mult': None},
+    #             {'description': 'filtro_est_2','addr':902, 'type': 'coil', 'mult': None},
+    #             {'description': 'filtro_est_3','addr':903, 'type': 'coil', 'mult': None},
+
+    #             {'description': 'filtro_cor_r_1','addr':1001, 'type': 'holding', 'mult': 1},
+    #             {'description': 'filtro_cor_g_1','addr':1002, 'type': 'holding', 'mult': 1},
+    #             {'description': 'filtro_cor_b_1','addr':1003, 'type': 'holding', 'mult': 1},
+    #             {'description': 'filtro_massa_1','addr':1004, 'type': 'holding', 'mult': 1},
+    #             {'description': 'filtro_cor_r_2','addr':1011, 'type': 'holding', 'mult': 1},
+    #             {'description': 'filtro_cor_g_2','addr':1012, 'type': 'holding', 'mult': 1},
+    #             {'description': 'filtro_cor_b_2','addr':1013, 'type': 'holding', 'mult': 1},
+    #             {'description': 'filtro_massa_2','addr':1014, 'type': 'holding', 'mult': 1},
+    #             {'description': 'filtro_cor_r_3','addr':1021, 'type': 'holding', 'mult': 1},
+    #             {'description': 'filtro_cor_g_3','addr':1022, 'type': 'holding', 'mult': 1},
+    #             {'description': 'filtro_cor_b_3','addr':1023, 'type': 'holding', 'mult': 1},
+    #             {'description': 'filtro_massa_3','addr':1024, 'type': 'holding', 'mult': 1},
+    # ]
+
+    # with open('tags.txt', 'w') as outfile:
+    #     json.dump(_tags, outfile)
 
     def __init__(self, scan_time, server_ip, server_port, **kwargs):
         super().__init__(**kwargs)
@@ -139,11 +154,11 @@ class MainWidget(MDScreen):
                 self._start_process()
                 Snackbar(text="Conexão realizada com sucesso", bg_color=(0,1,0,1)).open()
                 self._ev = []
-                for card in self.ids.modbus_data.children:
-                    if card.tag['type'] == "holding" or card.tag['type'] == "coil":
-                        self._ev.append(Clock.schedule_once(card.update_data))
-                    else:
-                        self._ev.append(Clock.schedule_interval(card.update_data,self._scan_time))
+                # for card in self.ids.modbus_data.children:
+                #     if card.tag['type'] == "holding" or card.tag['type'] == "coil":
+                #         self._ev.append(Clock.schedule_once(card.update_data))
+                #     else:
+                #         self._ev.append(Clock.schedule_interval(card.update_data,self._scan_time))
             except Exception as e:
                 print("Erro ao realizar a conexão com o servidor: ",e.args)
         else:
@@ -164,8 +179,8 @@ class MainWidget(MDScreen):
             Window.set_system_cursor("arrow")
             if self._modclient.is_open():
                 # Separa a interface do gerenciamento de dados
-                update_thread = Thread(target=self._updater_loop)
-                update_thread.start()
+                self.update_thread = Thread(target=self._updater_loop)
+                self.update_thread.start()
         except Exception as e:
             print("Erro de conexão ->", e.args[0])
 
@@ -177,16 +192,13 @@ class MainWidget(MDScreen):
             while self._is_update_enabled:
                 # ler os dados
                 self._lock.acquire()
-                # self._read_data()
+                self._read_data()
                 self._lock.release()
                 # atualizar a interface
                 self._update_gui()
                 # gravar no banco de dados
 
-
-                
-
-                sleep(self._scan_time / 1000)
+                sleep(self._scan_time)
         except Exception as e:
             print("Erro -> ", e.args)
             traceback.print_exc()
@@ -198,7 +210,7 @@ class MainWidget(MDScreen):
         try:
             for tag in self._tags:
                 if tag['description'] not in self._modbusdata:
-                    self._modbusdata[tag['description']] = {'value':0}        
+                    self._modbusdata[tag['description']] = 0      
 
                 value = None
                 
@@ -210,19 +222,26 @@ class MainWidget(MDScreen):
                 elif tag['type'] == "coil":
                     value = self._modclient.read_coils(tag['addr'],1)
                 if value != None:
-                    self._modbusdata[tag['description']]['value'] = value[0]
+                    self._modbusdata[tag['description']] = value[0]
                 # else:
                 #     print("Erro de leitura")
                
 
-            if self._modbusdata['peso_obj']['value'] != self._current_obj['peso_obj'] and self._modbusdata['peso_obj']['value'] != 0:
+            if self._modbusdata['peso_obj'] != self._current_obj['peso_obj'] and self._modbusdata['peso_obj'] != 0:
                 self.new_obj = True
-                self._current_obj['peso_obj'] = self._modbusdata['peso_obj']['value']
+                self._current_obj['peso_obj'] = self._modbusdata['peso_obj']
+                self._current_obj['cor_obj_R'] = self._modbusdata['cor_obj_R']
+                self._current_obj['cor_obj_G'] = self._modbusdata['cor_obj_G']
+                self._current_obj['cor_obj_B'] = self._modbusdata['cor_obj_B']
         except:
             traceback.print_exc()
         
         
     def _update_gui(self):
+        for card in self.ids.modbus_data.children:
+            card.set_data(self._modbusdata[card.tag['description']])
+                #     pass
+
         if self.new_obj:
             self.new_obj = False
             self.update_obj_color()
@@ -230,6 +249,7 @@ class MainWidget(MDScreen):
 
     def stop_refresh(self):
         self._update_widgets = False
+        self._is_update_enabled = False
 
     
     def create_new_obj(self):
@@ -237,10 +257,8 @@ class MainWidget(MDScreen):
         self.ids.desenho.add_widget(self.rectangle)
 
     def update_obj_color(self):
-        print(self.rectangle.color)
-        self.rectangle.color[0] = self._modbusdata['cor_obj_R']['value']
-        self.rectangle.color[1] = self._modbusdata['cor_obj_G']['value']
-        self.rectangle.color[2] = self._modbusdata['cor_obj_B']['value']
+        print(self._current_obj)
+        self.rectangle.update_color((self._current_obj['cor_obj_R'],self._current_obj['cor_obj_G'],self._current_obj['cor_obj_B'],1))
 
 
     def get_data_db(self):
