@@ -1,9 +1,5 @@
-from copy import Error
 import traceback
-from kivymd.uix import boxlayout
-from kivymd.uix.behaviors import backgroundcolor_behavior
 from kivymd.uix.screen import MDScreen
-# from kivymd.uix.boxlayout import BoxLayout
 from pyModbusTCP.client import ModbusClient
 from orm_engine import init_db
 from threading import Thread, Lock
@@ -18,6 +14,18 @@ from kivy.graphics import Rectangle, Color
 from kivy.uix.widget import Widget
 from kivy.properties import ListProperty
 import json
+from timeseriesgraph import TimeSeriesGraph
+from kivy_garden.graph import LinePlot
+from kivy.uix.boxlayout import BoxLayout
+from datetime import datetime
+
+
+class DataGraphWidget(BoxLayout):
+    def __init__(self, xmax, plot_color, **kwargs):
+        super().__init__(**kwargs)
+        self.plot = LinePlot(line_width=1.5, color=plot_color)
+        self.ids.graph.add_plot(self.plot)
+        self.ids.graph.xmax = xmax
 
 
 class MyRoundedRectangle(RoundedRectangle):
@@ -31,14 +39,14 @@ class MyRoundedRectangle(RoundedRectangle):
             self.pos = (parent_size[0]*self.pos_hint['center_x'] - self.size[0]/2,
                         parent_size[1]*self.pos_hint['center_y'] - self.size[1]/2)   
 
-class CanvasWidget(Widget):
+class ObjectWidget(Widget):
 
     background_color = ListProperty((0.5,0.5,0.5,1))
     color_property = ListProperty((1,0,0,1))
       
     def __init__(self, size, pos_hint, radius, **kwargs):
   
-        super(CanvasWidget, self).__init__(**kwargs)
+        super(ObjectWidget, self).__init__(**kwargs)
 
         # Arranging Canvas
         with self.canvas:
@@ -75,54 +83,14 @@ class MainWidget(MDScreen):
                     'Holding Register': 'alpha-h-circle',
                     'Coil':             'electric-switch'}
 
-    with open('tags.txt') as tags_file:
-        _tags = json.load(tags_file)
-        print(_tags)
-
-    # _tags = [   {'description':'estado_atuador', 'addr': 801, 'type': 'coil', 'mult': None},
-    #             {'description':'bt_on_off','addr':802, 'type': 'coil', 'mult': None},
-    #             {'description':'t_part','addr':798, 'type': 'holding', 'mult': 10},
-    #             {'description':'freq_des','addr':799, 'type': 'holding', 'mult': 1},
-    #             {'description':'freq_mot','addr':800, 'type': 'input', 'mult': 10},
-    #             {'description':'tensao','addr':801, 'type': 'input', 'mult': 1},
-    #             {'description':'rotacao','addr':803, 'type': 'input', 'mult': 1},
-    #             {'description':'pot_entrada','addr':804, 'type': 'input', 'mult': 10},
-    #             {'description':'corrente','addr':805, 'type': 'input', 'mult': 100},
-    #             {'description':'temp_estator','addr':806, 'type': 'input', 'mult': 10},
-    #             {'description':'vel_esteira','addr':807, 'type': 'input', 'mult': 100},
-    #             {'description':'carga','addr':808, 'type': 'input', 'mult': 100},
-    #             {'description':'peso_obj','addr':809, 'type': 'input', 'mult': 1},
-    #             {'description': 'cor_obj_R','addr':810, 'type': 'input', 'mult': 1},
-    #             {'description': 'cor_obj_G','addr':811, 'type': 'input', 'mult': 1},
-    #             {'description':'cor_obj_B','addr':812, 'type': 'input', 'mult': 1},
-
-    #             {'description': 'numObj_est_1','addr':813, 'type': 'input', 'mult': 1},
-    #             {'description': 'numObj_est_2','addr':814, 'type': 'input', 'mult': 1},
-    #             {'description': 'numObj_est_3','addr':815, 'type': 'input', 'mult': 1},
-    #             {'description': 'numObj_est_nc','addr':816, 'type': 'input', 'mult': 1},
-    #             {'description': 'filtro_est_1','addr':901, 'type': 'coil', 'mult': None},
-    #             {'description': 'filtro_est_2','addr':902, 'type': 'coil', 'mult': None},
-    #             {'description': 'filtro_est_3','addr':903, 'type': 'coil', 'mult': None},
-
-    #             {'description': 'filtro_cor_r_1','addr':1001, 'type': 'holding', 'mult': 1},
-    #             {'description': 'filtro_cor_g_1','addr':1002, 'type': 'holding', 'mult': 1},
-    #             {'description': 'filtro_cor_b_1','addr':1003, 'type': 'holding', 'mult': 1},
-    #             {'description': 'filtro_massa_1','addr':1004, 'type': 'holding', 'mult': 1},
-    #             {'description': 'filtro_cor_r_2','addr':1011, 'type': 'holding', 'mult': 1},
-    #             {'description': 'filtro_cor_g_2','addr':1012, 'type': 'holding', 'mult': 1},
-    #             {'description': 'filtro_cor_b_2','addr':1013, 'type': 'holding', 'mult': 1},
-    #             {'description': 'filtro_massa_2','addr':1014, 'type': 'holding', 'mult': 1},
-    #             {'description': 'filtro_cor_r_3','addr':1021, 'type': 'holding', 'mult': 1},
-    #             {'description': 'filtro_cor_g_3','addr':1022, 'type': 'holding', 'mult': 1},
-    #             {'description': 'filtro_cor_b_3','addr':1023, 'type': 'holding', 'mult': 1},
-    #             {'description': 'filtro_massa_3','addr':1024, 'type': 'holding', 'mult': 1},
-    # ]
-
-    # with open('tags.txt', 'w') as outfile:
-    #     json.dump(_tags, outfile)
 
     def __init__(self, scan_time, server_ip, server_port, **kwargs):
         super().__init__(**kwargs)
+
+        with open('tags.txt') as tags_file:
+            self._tags = json.load(tags_file)
+
+
         self._scan_time = scan_time
         self._modclient = ModbusClient(host=server_ip, port=server_port)
         Session = init_db("database/scada.db")
@@ -133,6 +101,8 @@ class MainWidget(MDScreen):
         self._current_obj = {'peso_obj':0}
         self.new_obj = False
         self.create_new_obj()
+        self._graph = DataGraphWidget(20,(1,0,0,1))
+        self.ids.graph_nav.add_widget(self._graph)
 
     def create_datacards(self):
         for tag in self._tags:
@@ -225,6 +195,7 @@ class MainWidget(MDScreen):
                     self._modbusdata[tag['description']] = value[0]
                 # else:
                 #     print("Erro de leitura")
+
                
 
             if self._modbusdata['peso_obj'] != self._current_obj['peso_obj'] and self._modbusdata['peso_obj'] != 0:
@@ -240,11 +211,12 @@ class MainWidget(MDScreen):
     def _update_gui(self):
         for card in self.ids.modbus_data.children:
             card.set_data(self._modbusdata[card.tag['description']])
-                #     pass
 
         if self.new_obj:
             self.new_obj = False
             self.update_obj_color()
+
+        self._graph.ids.graph.updateGraph((datetime.now(),self._modbusdata['tensao']),0)
 
 
     def stop_refresh(self):
@@ -253,7 +225,7 @@ class MainWidget(MDScreen):
 
     
     def create_new_obj(self):
-        self.rectangle = CanvasWidget(size=(100,100),pos_hint={'center_x': 0.4, 'center_y': 0.4},radius=[10, 10, 10, 10])
+        self.rectangle = ObjectWidget(size=(100,100),pos_hint={'center_x': 0.4, 'center_y': 0.4},radius=[10, 10, 10, 10])
         self.ids.desenho.add_widget(self.rectangle)
 
     def update_obj_color(self):

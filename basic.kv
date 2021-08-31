@@ -69,10 +69,39 @@
                 icon: 'factory'
                 FloatLayout:    
                     id: desenho               
-                    # canvas:
-                    #     Color:
-                    #         rgba: 0, 0, 0.5, 0.9
+                    canvas.before:
+                        Color:
+                            rgba: 0.5, 0.5, 0.5, 1
+                        Rectangle:
+                            pos: self.pos
+                            size: self.size
+            MDBottomNavigationItem:
+                name: 'plot'
+                text: 'Gráficos'
+                icon: 'chart-line'
+                id: graph_nav
+                              
                     
+
+<DataGraphWidget>:
+    orientation: 'vertical'
+    TimeSeriesGraph:
+        id: graph
+        xlabel: 'Horário'
+        ylabel: 'Valor'
+        background_color: 0.5,0.5,0.5,0.5
+        x_ticks_minor: 1
+        x_ticks_major: 5
+        y_ticks_major: 100
+        y_grid_label: True
+        x_grid_label: True
+        padding: 5
+        x_grid: True
+        y_grid: True
+        xmin: 0
+        ymin: 0
+        ymax: 500 
+
 
 <DataCard>:
     orientation: 'vertical'
