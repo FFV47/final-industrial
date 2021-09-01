@@ -21,4 +21,5 @@ class BasicApp(MDApp):
 
 
 if __name__ == '__main__':
+    Window.size = (1280,720)
     BasicApp().run()

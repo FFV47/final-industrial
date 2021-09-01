@@ -18,29 +18,26 @@
                     font_size: '30sp'
                     padding: '10dp'
                     spacing: '5dp'
-                    Image:
-                        source: 'imgs/esteira3baias.png'
-                        pos_hint: {'center_x': 0.5, 'center_y': 0.5}
-                        size_hint: (0.9, 0.9)
+                    
                     MDTextField:
                         id: hostname
                         text: '127.0.0.1'
                         hint_text: 'Endereço IP'
                         size_hint: (0.2, None)
                         height: '50dp'
-                        pos_hint: {'center_x': 0.1, 'center_y': 0.2}
+                        pos_hint: {'center_x': 0.5, 'center_y': 0.2}
                     MDTextField:
                         id: port
                         text: '502'
                         hint_text: 'Porta'
                         size_hint: (0.2, None)
                         height: '50dp'
-                        pos_hint: {'center_x': 0.1, 'center_y': 0.1}
+                        pos_hint: {'center_x': 0.5, 'center_y': 0.1}
                     MDRoundFlatIconButton:
                         id: bt_con
                         text: 'CONECTAR'
                         icon: 'lan-connect'
-                        pos_hint: {'center_x': 0.9, 'center_y': 0.1}
+                        pos_hint: {'center_x': 0.5, 'center_y': 0.1}
                         on_press: root.connect()
             MDBottomNavigationItem:
                 name: 'data'
@@ -75,6 +72,12 @@
                         Rectangle:
                             pos: self.pos
                             size: self.size
+                    Image:
+                        id: esteira_img
+                        source: 'imgs/esteira.jpeg'
+                        pos_hint: {'center_x': 0.5, 'center_y': 0.5}
+                        size: self.size
+                        allow_stretch: True
             MDBottomNavigationItem:
                 name: 'plot'
                 text: 'Gráficos'

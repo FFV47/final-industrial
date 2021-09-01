@@ -44,7 +44,7 @@ class ObjectWidget(Widget):
     background_color = ListProperty((0.5,0.5,0.5,1))
     color_property = ListProperty((1,0,0,1))
       
-    def __init__(self, size, pos_hint, radius, **kwargs):
+    def __init__(self, size, obj_size, pos_hint, radius, **kwargs):
   
         super(ObjectWidget, self).__init__(**kwargs)
 
@@ -54,10 +54,11 @@ class ObjectWidget(Widget):
             self.rect_color = Color(rgba=(1,0,0,1))  # set the colour 
   
             # Seting the size and position of image
-            # image must be in same folder 
-            
-        
-            self.rect =  MyRoundedRectangle( size = size, radius=radius, pos_hint=pos_hint)
+            # image must be in same folder        
+
+            pos_hint = self.new_pos_hint(pos_hint)
+
+            self.rect =  MyRoundedRectangle( size = obj_size, radius=radius, pos_hint=pos_hint)
             
             # Update the canvas as the screen size change
             # if not use this next 5 line the
@@ -73,6 +74,19 @@ class ObjectWidget(Widget):
 
     def update_color(self,color):
         self.rect_color.rgba = color
+
+    def get_size(self):
+        return [self.width, self.height]
+
+    def new_pos_hint(self,pos_hint):
+        img_width = 743
+
+        new_pos_hint = pos_hint
+        print(pos_hint)
+        new_pos_hint['center_x'] = (pos_hint['center_x'] - 0.5) * (img_width / 1280) + 0.5
+        print(new_pos_hint)
+        return new_pos_hint
+
 
 
 class MainWidget(MDScreen):
@@ -90,6 +104,7 @@ class MainWidget(MDScreen):
         with open('tags.txt') as tags_file:
             self._tags = json.load(tags_file)
 
+        self.size_img_esteira = [958,773]
 
         self._scan_time = scan_time
         self._modclient = ModbusClient(host=server_ip, port=server_port)
@@ -103,6 +118,8 @@ class MainWidget(MDScreen):
         self.create_new_obj()
         self._graph = DataGraphWidget(20,(1,0,0,1))
         self.ids.graph_nav.add_widget(self._graph)
+
+
 
     def create_datacards(self):
         for tag in self._tags:
@@ -204,6 +221,7 @@ class MainWidget(MDScreen):
                 self._current_obj['cor_obj_R'] = self._modbusdata['cor_obj_R']
                 self._current_obj['cor_obj_G'] = self._modbusdata['cor_obj_G']
                 self._current_obj['cor_obj_B'] = self._modbusdata['cor_obj_B']
+                print(self.rectangle.get_size())
         except:
             traceback.print_exc()
         
@@ -217,6 +235,7 @@ class MainWidget(MDScreen):
             self.update_obj_color()
 
         self._graph.ids.graph.updateGraph((datetime.now(),self._modbusdata['tensao']),0)
+        print(self.ids.esteira_img.size)
 
 
     def stop_refresh(self):
@@ -225,8 +244,11 @@ class MainWidget(MDScreen):
 
     
     def create_new_obj(self):
-        self.rectangle = ObjectWidget(size=(100,100),pos_hint={'center_x': 0.4, 'center_y': 0.4},radius=[10, 10, 10, 10])
+        pos_hint={'center_x': 750/self.size_img_esteira[0], 'center_y': (self.size_img_esteira[1]-150)/self.size_img_esteira[1]}
+        self.rectangle = ObjectWidget(size=self.size_img_esteira, obj_size=(50,50),pos_hint=pos_hint,radius=[10, 10, 10, 10])
         self.ids.desenho.add_widget(self.rectangle)
+        print(self.rectangle.get_size())
+
 
     def update_obj_color(self):
         print(self._current_obj)
