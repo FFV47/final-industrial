@@ -9,83 +9,9 @@ from kivy.core.window import Window
 from datacards import CardCoil, CardHoldingRegister, CardInputRegister
 from kivymd.uix.snackbar import Snackbar
 from kivy.clock import Clock
-from kivy.graphics.vertex_instructions import RoundedRectangle
-from kivy.graphics import Rectangle, Color
-from kivy.uix.widget import Widget
-from kivy.properties import ListProperty
+from frontend import DataGraphWidget, ObjectWidget
 import json
-from timeseriesgraph import TimeSeriesGraph
-from kivy_garden.graph import LinePlot
-from kivy.uix.boxlayout import BoxLayout
 from datetime import datetime
-
-
-class DataGraphWidget(BoxLayout):
-    def __init__(self, xmax, plot_color, **kwargs):
-        super().__init__(**kwargs)
-        self.plot = LinePlot(line_width=1.5, color=plot_color)
-        self.ids.graph.add_plot(self.plot)
-        self.ids.graph.xmax = xmax
-
-
-class MyRoundedRectangle(RoundedRectangle):
-    def __init__(self, pos_hint=None, **kwargs) -> None:
-        super().__init__(**kwargs)
-
-        self.pos_hint = pos_hint
-
-    def update_position(self, parent_size):
-        if self.pos_hint != None:
-            self.pos = (parent_size[0]*self.pos_hint['center_x'] - self.size[0]/2,
-                        parent_size[1]*self.pos_hint['center_y'] - self.size[1]/2)   
-
-class ObjectWidget(Widget):
-
-    background_color = ListProperty((0.5,0.5,0.5,1))
-    color_property = ListProperty((1,0,0,1))
-      
-    def __init__(self, size, obj_size, pos_hint, radius, **kwargs):
-  
-        super(ObjectWidget, self).__init__(**kwargs)
-
-        # Arranging Canvas
-        with self.canvas:
-  
-            self.rect_color = Color(rgba=(1,0,0,1))  # set the colour 
-  
-            # Seting the size and position of image
-            # image must be in same folder        
-
-            pos_hint = self.new_pos_hint(pos_hint)
-
-            self.rect =  MyRoundedRectangle( size = obj_size, radius=radius, pos_hint=pos_hint)
-            
-            # Update the canvas as the screen size change
-            # if not use this next 5 line the
-            # code will run but not cover the full screen
-
-            self.bind(pos = self.update_rect, size = self.update_rect)
-  
-    # update function which makes the canvas adjustable.
-    def update_rect(self, *args):
-        self.rect.update_position(self.size)
-        
-        # self.rect.size = self.size
-
-    def update_color(self,color):
-        self.rect_color.rgba = color
-
-    def get_size(self):
-        return [self.width, self.height]
-
-    def new_pos_hint(self,pos_hint):
-        img_width = 743
-
-        new_pos_hint = pos_hint
-        print(pos_hint)
-        new_pos_hint['center_x'] = (pos_hint['center_x'] - 0.5) * (img_width / 1280) + 0.5
-        print(new_pos_hint)
-        return new_pos_hint
 
 
 
@@ -118,7 +44,6 @@ class MainWidget(MDScreen):
         self.create_new_obj()
         self._graph = DataGraphWidget(20,(1,0,0,1))
         self.ids.graph_nav.add_widget(self._graph)
-
 
 
     def create_datacards(self):
@@ -200,7 +125,6 @@ class MainWidget(MDScreen):
                     self._modbusdata[tag['description']] = 0      
 
                 value = None
-                
                
                 if tag['type'] == "input":
                     value = self._modclient.read_input_registers(tag['addr'],1)
@@ -212,8 +136,6 @@ class MainWidget(MDScreen):
                     self._modbusdata[tag['description']] = value[0]
                 # else:
                 #     print("Erro de leitura")
-
-               
 
             if self._modbusdata['peso_obj'] != self._current_obj['peso_obj'] and self._modbusdata['peso_obj'] != 0:
                 self.new_obj = True
@@ -232,6 +154,14 @@ class MainWidget(MDScreen):
 
         if self.new_obj:
             self.new_obj = False
+            if self._current_obj['cor_obj_R'] == 255 and self._current_obj['cor_obj_G'] == 0 and self._current_obj['cor_obj_B'] == 0:
+                self.rectangle.set_rect_pos_px([162,272])
+            elif self._current_obj['cor_obj_R'] == 0 and self._current_obj['cor_obj_G'] == 255 and self._current_obj['cor_obj_B'] == 0:
+                self.rectangle.set_rect_pos_px([300,272])
+            elif self._current_obj['cor_obj_R'] == 0 and self._current_obj['cor_obj_G'] == 0 and self._current_obj['cor_obj_B'] == 255:
+                self.rectangle.set_rect_pos_px([432,272])
+            else:
+                self.rectangle.set_rect_pos_px([572,272])
             self.update_obj_color()
 
         self._graph.ids.graph.updateGraph((datetime.now(),self._modbusdata['tensao']),0)
@@ -244,8 +174,11 @@ class MainWidget(MDScreen):
 
     
     def create_new_obj(self):
-        pos_hint={'center_x': 750/self.size_img_esteira[0], 'center_y': (self.size_img_esteira[1]-150)/self.size_img_esteira[1]}
-        self.rectangle = ObjectWidget(size=self.size_img_esteira, obj_size=(50,50),pos_hint=pos_hint,radius=[10, 10, 10, 10])
+
+        # posicao desejada medida no paint em pixels (y=0 em cima) 
+        position_px = [806, 94]
+
+        self.rectangle = ObjectWidget(size_img = self.size_img_esteira, obj_size = (50,50), radius = [10, 10, 10, 10], pos_px=position_px)
         self.ids.desenho.add_widget(self.rectangle)
         print(self.rectangle.get_size())
 
