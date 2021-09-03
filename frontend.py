@@ -40,6 +40,7 @@ class ObjectWidget(Widget):
   
         super(ObjectWidget, self).__init__(**kwargs)
 
+        # self.remove_listener = remove_listener
         self.speed = 2
         # Arranging Canvas
         with self.canvas:
@@ -136,3 +137,6 @@ class ObjectWidget(Widget):
             self.set_rect_pos_px(self.rect_pos_px)
         else:
             return False
+
+    def remove(self):
+        self.remove_listener(self)

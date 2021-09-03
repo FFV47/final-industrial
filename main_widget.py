@@ -42,15 +42,16 @@ class MainWidget(MDScreen):
         self._current_obj = {'peso_obj':0}
         self.new_obj = False
 
-        # posicao desejada medida no paint em pixels (y=0 em cima) 
-        pos_px = [806, 94]
-        self.rectangle = self.create_new_obj(pos_px,(1,0,0,1))
         self._graph = DataGraphWidget(20,(1,0,0,1))
         self.ids.graph_nav.add_widget(self._graph)
 
+        self._est_1_list = []
+        self._est_2_list = []
+        self._est_3_list = []
+        self._est_nc_list = []
 
-        self.moving_obj = self.create_new_obj([760,154],(1,0,0,1))
-        self.moving_obj.move_x([150,650])
+        # self.moving_obj = self.create_new_obj([760,154],(1,0,0,1))
+        # self.moving_obj.move_x([150,650])
 
 
     def create_datacards(self):
@@ -73,6 +74,9 @@ class MainWidget(MDScreen):
                 self._start_process()
                 Snackbar(text="Conexão realizada com sucesso", bg_color=(0,1,0,1)).open()
                 self._ev = []
+                for card in self.ids.modbus_data.children:
+                    card.update_data()
+
                 # for card in self.ids.modbus_data.children:
                 #     if card.tag['type'] == "holding" or card.tag['type'] == "coil":
                 #         self._ev.append(Clock.schedule_once(card.update_data))
@@ -151,40 +155,80 @@ class MainWidget(MDScreen):
                 self._current_obj['cor_obj_R'] = self._modbusdata['cor_obj_R']
                 self._current_obj['cor_obj_G'] = self._modbusdata['cor_obj_G']
                 self._current_obj['cor_obj_B'] = self._modbusdata['cor_obj_B']
-                print(self.rectangle.get_size())
+                print(self._current_obj)
         except:
             traceback.print_exc()
         
         
     def _update_gui(self):
         for card in self.ids.modbus_data.children:
-            card.set_data(self._modbusdata[card.tag['description']])
+            if card.tag['type'] != "coil" and card.tag['type'] != "holding":
+
+                card.set_data(self._modbusdata[card.tag['description']])
+            # elif card.tag['description'] == 'filtro_est_1':
+            #     print("filtro_est_1 = ",self._modbusdata[card.tag['description']])
 
         if self.new_obj:
             self.new_obj = False
             obj_color = (self._current_obj['cor_obj_R']/255, self._current_obj['cor_obj_G']/255, self._current_obj['cor_obj_B']/255, 1)
-            if obj_color == (1,0,0,1):
+
+            filtro_cor_1 = (self._modbusdata['filtro_cor_r_1']/255,self._modbusdata['filtro_cor_g_1']/255,self._modbusdata['filtro_cor_b_1']/255,1)
+            filtro_cor_2 = (self._modbusdata['filtro_cor_r_2']/255,self._modbusdata['filtro_cor_g_2']/255,self._modbusdata['filtro_cor_b_2']/255,1)
+            filtro_cor_3 = (self._modbusdata['filtro_cor_r_3']/255,self._modbusdata['filtro_cor_g_3']/255,self._modbusdata['filtro_cor_b_3']/255,1)
+            
+            obj_est_1_cor   = (self._modbusdata['filtro_est_1'] == True and obj_color == filtro_cor_1)
+            obj_est_1_massa = (self._modbusdata['filtro_est_1'] == False and self._current_obj['peso_obj'] == self._modbusdata['filtro_massa_1'])
+            obj_est_2_cor   = (self._modbusdata['filtro_est_2'] == True and obj_color == filtro_cor_2)
+            obj_est_2_massa = (self._modbusdata['filtro_est_2'] == False and self._current_obj['peso_obj'] == self._modbusdata['filtro_massa_2'])
+            obj_est_3_cor   = (self._modbusdata['filtro_est_3'] == True and obj_color == filtro_cor_3)
+            obj_est_3_massa = (self._modbusdata['filtro_est_3'] == False and self._current_obj['peso_obj'] == self._modbusdata['filtro_massa_3'])
+
+            if obj_est_1_cor or obj_est_1_massa:
                 new_obj = self.create_new_obj([762,155],obj_color)
                 new_obj.move_x([152,645])
-            elif obj_color == (0,1,0,1):
+                self._est_1_list.append(new_obj)
+
+            elif obj_est_2_cor or obj_est_2_massa:
                 new_obj = self.create_new_obj([762,155],obj_color)
                 new_obj.move_x([295,645])
-            elif obj_color == (0,0,1,1):
+                self._est_2_list.append(new_obj)
+
+            elif obj_est_3_cor or obj_est_3_massa:
                 new_obj = self.create_new_obj([762,155],obj_color)
                 new_obj.move_x([438,645])
+                self._est_3_list.append(new_obj)
+
             else:
                 new_obj = self.create_new_obj([762,155],obj_color)
                 new_obj.move_x([574,645])
+                self._est_nc_list.append(new_obj)
             # self.update_obj_color()
+
+        self.check_num_objs()
 
         self._graph.ids.graph.updateGraph((datetime.now(),self._modbusdata['tensao']),0)
         # print(self.ids.esteira_img.size)
+
+    def check_num_objs(self):
+        if self._modbusdata['numObj_est_1'] < len(self._est_1_list) and len(self._est_1_list) > 0:
+            obj = self._est_1_list.pop(0)
+            self.ids.desenho.remove_widget(obj)
+        if self._modbusdata['numObj_est_2'] < len(self._est_2_list) and len(self._est_2_list) > 0:
+            obj = self._est_2_list.pop(0)
+            self.ids.desenho.remove_widget(obj)
+        if self._modbusdata['numObj_est_3'] < len(self._est_3_list) and len(self._est_3_list) > 0:
+            obj = self._est_3_list.pop(0)
+            self.ids.desenho.remove_widget(obj)
+        if self._modbusdata['numObj_est_nc'] < len(self._est_nc_list) and len(self._est_nc_list) > 0:
+            obj = self._est_nc_list.pop(0)
+            self.ids.desenho.remove_widget(obj)
 
 
     def stop_refresh(self):
         self._update_widgets = False
         self._is_update_enabled = False
         self._modclient.close()
+
 
     
     def create_new_obj(self, pos_px, color):

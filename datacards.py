@@ -34,11 +34,15 @@ class DataCard(MDCard):
     def write_data(self):
         try:
             if self._client.is_open():
+                self._lock.acquire()
+
                 self._write_data_fcn(self.tag["addr"], self.get_data())
+                self._lock.release()
         except Exception as e:
             print("Erro ao realizar a escrita do dado -> ")
             for e in e.args:
                 print(e)
+            traceback.print_exc()
 
 
 class CardHoldingRegister(DataCard):
