@@ -6,6 +6,7 @@ from kivy.properties import ListProperty
 from kivy.graphics import Color
 from timeseriesgraph import TimeSeriesGraph
 import copy
+from kivy.clock import Clock
 
 class DataGraphWidget(BoxLayout):
     def __init__(self, xmax, plot_color, **kwargs):
@@ -19,12 +20,12 @@ class MyRoundedRectangle(RoundedRectangle):
     def __init__(self, size_img, pos_hint=None, **kwargs) -> None:
         super().__init__(**kwargs)
 
-        self.my_pos_hint = pos_hint
+        self.pos_hint = pos_hint
         self.size_img = size_img
         self.update_position(pos_hint)
 
     def update_position(self, pos_hint, parent_size=[1280,600]):
-
+        self.pos_hint = pos_hint
         if pos_hint != None:
             self.pos = (parent_size[0]*pos_hint['center_x'] - self.size[0]/2,
                         parent_size[1]*pos_hint['center_y'] - self.size[1]/2)   
@@ -35,20 +36,22 @@ class ObjectWidget(Widget):
     background_color = ListProperty((0.5,0.5,0.5,1))
     color_property = ListProperty((1,0,0,1))
       
-    def __init__(self, size_img, obj_size, pos_px, radius, **kwargs):
+    def __init__(self, size_img, obj_size, pos_px, radius, color, **kwargs):
   
         super(ObjectWidget, self).__init__(**kwargs)
 
+        self.speed = 2
         # Arranging Canvas
         with self.canvas:
   
-            self.rect_color = Color(rgba=(1,0,0,1))  # set the colour 
+            self.rect_color = Color(rgba=color)  # set the colour 
   
             # Seting the size and position of image
             # image must be in same folder      
             
             self.size_img = size_img  
 
+            self.rect_pos_px = pos_px
             self.rect_pos_hint = self.px2pos_hint(pos_px)
             new_pos_hint = self.new_pos_hint(self.rect_pos_hint)
             self.rect =  MyRoundedRectangle( size = obj_size, size_img=size_img, radius=radius, pos_hint=new_pos_hint)
@@ -74,7 +77,7 @@ class ObjectWidget(Widget):
     def new_pos_hint(self, pos_hint):
         """ Calcula novo pos_hint considerando as bordas da imagem causada pela diferença 
             de tamanho entra a imagem da esteira e o widget onde ela foi inserida
-         """
+        """
 
         parent_size = self.size
         # corrige falsa leitura de tamanho na inicialização do código
@@ -94,8 +97,9 @@ class ObjectWidget(Widget):
 
     
     def set_rect_pos_px(self, position_px):
-        """ Muda posicao da caixa em relação a imagem da estera em pixels """
+        """ Muda posicao da caixa em relação a imagem da esteira em pixels """
 
+        self.rect_pos_px = position_px
         self.rect_pos_hint = self.px2pos_hint(position_px)
         new_pos_hint = self.new_pos_hint(self.rect_pos_hint)
         self.rect.update_position(new_pos_hint, parent_size=self.size)
@@ -107,3 +111,28 @@ class ObjectWidget(Widget):
         pos_hint_y = (self.size_img[1]-pos_px[1])/self.size_img[1]
         pos_hint = {'center_x': pos_hint_x, 'center_y': pos_hint_y}
         return pos_hint
+
+    def move_x(self, pos_px):
+
+        self.target_rect_pos_px = pos_px
+        self._ev = Clock.schedule_interval(self.update_movement_x,1/20)
+
+    def update_movement_x(self,dt):
+        if self.rect_pos_px[0] > self.target_rect_pos_px[0]:
+            self.rect_pos_px[0] -= self.speed
+            self.set_rect_pos_px(self.rect_pos_px)
+        else:
+            self.move_y(self.target_rect_pos_px)
+            return False
+
+    def move_y(self, pos_px):
+
+        self.target_rect_pos_px = pos_px
+        self._ev = Clock.schedule_interval(self.update_movement_y,1/20)
+
+    def update_movement_y(self,dt):
+        if self.rect_pos_px[1] < self.target_rect_pos_px[1]:
+            self.rect_pos_px[1] += self.speed
+            self.set_rect_pos_px(self.rect_pos_px)
+        else:
+            return False

@@ -41,9 +41,16 @@ class MainWidget(MDScreen):
         self._modbusdata = {}
         self._current_obj = {'peso_obj':0}
         self.new_obj = False
-        self.create_new_obj()
+
+        # posicao desejada medida no paint em pixels (y=0 em cima) 
+        pos_px = [806, 94]
+        self.rectangle = self.create_new_obj(pos_px,(1,0,0,1))
         self._graph = DataGraphWidget(20,(1,0,0,1))
         self.ids.graph_nav.add_widget(self._graph)
+
+
+        self.moving_obj = self.create_new_obj([760,154],(1,0,0,1))
+        self.moving_obj.move_x([150,650])
 
 
     def create_datacards(self):
@@ -70,7 +77,7 @@ class MainWidget(MDScreen):
                 #     if card.tag['type'] == "holding" or card.tag['type'] == "coil":
                 #         self._ev.append(Clock.schedule_once(card.update_data))
                 #     else:
-                #         self._ev.append(Clock.schedule_interval(card.update_data,self._scan_time))
+                        # self._ev.append(Clock.schedule_interval(card.update_data,self._scan_time))
             except Exception as e:
                 print("Erro ao realizar a conexão com o servidor: ",e.args)
         else:
@@ -103,9 +110,10 @@ class MainWidget(MDScreen):
         try:
             while self._is_update_enabled:
                 # ler os dados
-                self._lock.acquire()
-                self._read_data()
-                self._lock.release()
+                if self._modclient.is_open():
+                    self._lock.acquire()
+                    self._read_data()
+                    self._lock.release()
                 # atualizar a interface
                 self._update_gui()
                 # gravar no banco de dados
@@ -154,33 +162,37 @@ class MainWidget(MDScreen):
 
         if self.new_obj:
             self.new_obj = False
-            if self._current_obj['cor_obj_R'] == 255 and self._current_obj['cor_obj_G'] == 0 and self._current_obj['cor_obj_B'] == 0:
-                self.rectangle.set_rect_pos_px([162,272])
-            elif self._current_obj['cor_obj_R'] == 0 and self._current_obj['cor_obj_G'] == 255 and self._current_obj['cor_obj_B'] == 0:
-                self.rectangle.set_rect_pos_px([300,272])
-            elif self._current_obj['cor_obj_R'] == 0 and self._current_obj['cor_obj_G'] == 0 and self._current_obj['cor_obj_B'] == 255:
-                self.rectangle.set_rect_pos_px([432,272])
+            obj_color = (self._current_obj['cor_obj_R']/255, self._current_obj['cor_obj_G']/255, self._current_obj['cor_obj_B']/255, 1)
+            if obj_color == (1,0,0,1):
+                new_obj = self.create_new_obj([762,155],obj_color)
+                new_obj.move_x([152,645])
+            elif obj_color == (0,1,0,1):
+                new_obj = self.create_new_obj([762,155],obj_color)
+                new_obj.move_x([295,645])
+            elif obj_color == (0,0,1,1):
+                new_obj = self.create_new_obj([762,155],obj_color)
+                new_obj.move_x([438,645])
             else:
-                self.rectangle.set_rect_pos_px([572,272])
-            self.update_obj_color()
+                new_obj = self.create_new_obj([762,155],obj_color)
+                new_obj.move_x([574,645])
+            # self.update_obj_color()
 
         self._graph.ids.graph.updateGraph((datetime.now(),self._modbusdata['tensao']),0)
-        print(self.ids.esteira_img.size)
+        # print(self.ids.esteira_img.size)
 
 
     def stop_refresh(self):
         self._update_widgets = False
         self._is_update_enabled = False
+        self._modclient.close()
 
     
-    def create_new_obj(self):
+    def create_new_obj(self, pos_px, color):
 
-        # posicao desejada medida no paint em pixels (y=0 em cima) 
-        position_px = [806, 94]
-
-        self.rectangle = ObjectWidget(size_img = self.size_img_esteira, obj_size = (50,50), radius = [10, 10, 10, 10], pos_px=position_px)
-        self.ids.desenho.add_widget(self.rectangle)
-        print(self.rectangle.get_size())
+        rectangle = ObjectWidget(size_img = self.size_img_esteira, obj_size = (50,50), radius = [10, 10, 10, 10], pos_px=pos_px, color=color)
+        self.ids.desenho.add_widget(rectangle)
+        # print(rectangle.get_size())
+        return rectangle
 
 
     def update_obj_color(self):
