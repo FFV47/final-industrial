@@ -27,7 +27,7 @@ pontos):
    - [ ] (2 pontos) Separação de telas (monitoramento em tempo real e busca de dados históricos)
    - [ ] (7 pontos) Deverá utilizar o framework kivyMD
 <!--  -->
-4. (7 pontos) Deverá utilizar o framework kivyMD:
+4. (7 pontos) Módulo de busca de dados históricos (15 pontos):
 
    - [ ] (6 pontos) Armazenamento das principais informações do processo
    - [ ] (6 pontos) Permitir a busca de dados históricos das informações do processo

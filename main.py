@@ -2,7 +2,8 @@ from kivymd.app import MDApp
 from main_widget import MainWidget
 from kivy.config import Config
 from kivy.core.window import Window
-Config.set('kivy', 'exit_on_escape', '0')
+
+Config.set("kivy", "exit_on_escape", "0")
 
 
 class BasicApp(MDApp):
@@ -11,7 +12,9 @@ class BasicApp(MDApp):
         self.theme_cls.primary_pallete = "Blue"
         self.theme_cls.primary_hue = "500"
         self.theme_cls.accent_pallete = "Blue"
-        self.main_widget = MainWidget(scan_time=1,server_ip="127.0.0.1",server_port=502)
+        self.main_widget = MainWidget(
+            scan_time=1, server_ip="127.0.0.1", server_port=40000
+        )
         return self.main_widget
 
     def on_request_close(self, *args):
@@ -20,6 +23,6 @@ class BasicApp(MDApp):
         self.stop()
 
 
-if __name__ == '__main__':
-    Window.size = (1280,720)
+if __name__ == "__main__":
+    Window.size = (1280, 720)
     BasicApp().run()
