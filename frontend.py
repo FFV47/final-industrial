@@ -11,6 +11,15 @@ from kivy_garden.graph import LinePlot
 from timeseriesgraph import TimeSeriesGraph
 
 
+class NewTagContent(BoxLayout):
+    def __init__(self, update_func, **kwargs):
+        self.update_func = update_func
+        super().__init__(**kwargs)
+
+    def update_filter(self, checkbox, value, filt_key):
+        self.update_func(filt_key, value)
+
+
 class DataGraphWidget(BoxLayout):
     def __init__(self, xmax, plot_color, **kwargs):
         super().__init__(**kwargs)
@@ -98,9 +107,7 @@ class ObjectWidget(Widget):
         new_pos_hint = copy.deepcopy(pos_hint)
 
         # ajusta o pos_hint proporcionalmente a diferença de largura da imagem e o widget pai
-        new_pos_hint["center_x"] = (pos_hint["center_x"] - 0.5) * (
-            img_width / parent_size[0]
-        ) + 0.5
+        new_pos_hint["center_x"] = (pos_hint["center_x"] - 0.5) * (img_width / parent_size[0]) + 0.5
 
         return new_pos_hint
 

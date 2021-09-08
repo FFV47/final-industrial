@@ -8,10 +8,12 @@ from kivy.clock import Clock
 from kivy.core.window import Window
 from kivymd.uix.screen import MDScreen
 from kivymd.uix.snackbar import Snackbar
+from kivymd.uix.button import MDFlatButton
+from kivymd.uix.dialog import MDDialog
 from pyModbusTCP.client import ModbusClient
 
 from datacards import CardCoil, CardHoldingRegister, CardInputRegister
-from frontend import DataGraphWidget, ObjectWidget
+from frontend import DataGraphWidget, ObjectWidget, NewTagContent
 from models import EsteiraPrincipal, EsteiraSecundaria, Filtro
 from orm_engine import init_db
 
@@ -53,8 +55,48 @@ class MainWidget(MDScreen):
         self._est_3_list = []
         self._est_nc_list = []
 
+        self.dialog = None
+
         # self.moving_obj = self.create_new_obj([760,154],(1,0,0,1))
         # self.moving_obj.move_x([150,650])
+
+
+    def config_planta(self):
+        self.show_dialog()
+        print("Config planta")
+
+    def update_filter(self, filt_key, value):
+         for card in self.ids.modbus_data.children:
+            if card.tag['description'] == filt_key:
+                if card.tag['type'] == 'holding':
+                    card.set_data(int((not value)*255))
+                else:
+                    card.set_data(not value)
+
+                card.write_data()
+
+
+    def show_dialog(self):
+        if not self.dialog:
+            self.dialog = MDDialog(
+                title="Hab. dos Filtros",
+                type="custom",
+                content_cls= NewTagContent(self.update_filter),
+                buttons=[
+                    MDFlatButton(
+                        text="Cancelar", on_release=self.close_dialog
+                    ),
+                    MDFlatButton(
+                        text="Criar", on_release=self.close_dialog
+                    ),
+                ],
+            )
+
+        self.dialog.open()
+
+    def close_dialog(self, *args):
+        self.dialog.dismiss(force=True)
+
 
     def create_datacards(self):
         """
@@ -115,7 +157,7 @@ class MainWidget(MDScreen):
         try:
             if self._modclient.is_open():
                 self._read_data()
-                self._update_filter_conf()
+                self._update_filter_DB()
                 # Separa a interface do gerenciamento de dados
 
                 self.update_thread = Thread(target=self._updater_loop)
@@ -135,12 +177,12 @@ class MainWidget(MDScreen):
                 self._read_data()
                 # atualizar a interface
                 Clock.schedule_once(self._update_gui)
-                
+
                 # gravar no banco de dados
                 # Qual a condição correta?????
                 if self._modbusdata["bt_on_off"] == 1:
                     self._write_to_DB()
-                    
+
                 sleep(self._scan_time)
         except Exception as e:
             print("Erro -> ", e.args)
@@ -218,7 +260,7 @@ class MainWidget(MDScreen):
                 self._modbusdata["filtro_cor_b_3"] / 255,
                 1,
             )
-            
+
             # consulta qual filtro deve ser usado
             use_cor_1 = self._modbusdata["filtro_est_1"]
             use_cor_2 = self._modbusdata["filtro_est_2"]
@@ -240,6 +282,8 @@ class MainWidget(MDScreen):
             )
 
             new_obj = self.create_new_obj(obj_color)
+
+            print(use_cor_1," ",use_cor_2," ",use_cor_3," ")
 
             if (obj_est_1_cor and use_cor_1) or (obj_est_1_massa and not use_cor_1):
                 new_obj.move_x([152, 645])
@@ -412,7 +456,7 @@ class MainWidget(MDScreen):
         self._session.commit()
         self._lock.release()
 
-    def _update_filter_conf(self):
+    def _update_filter_DB(self):
         filtro = Filtro(
             cor_r_1=self._modbusdata["filtro_cor_r_1"],
             cor_g_1=self._modbusdata["filtro_cor_g_1"],

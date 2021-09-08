@@ -8,12 +8,13 @@ from pyModbusTCP.client import ModbusClient
 class DataCard(MDCard):
     title = "Data Card"
 
-    def __init__(self, tag: dict, client: ModbusClient):
-        super().__init__()
+    def __init__(self, tag: dict, client: ModbusClient, **kwargs):
+
         self.tag = tag
         self.title = tag["description"]
         self._client = client
         self._lock = Lock()
+        super().__init__()
 
     def update_data(self):
         try:
@@ -35,7 +36,9 @@ class DataCard(MDCard):
     def write_data(self):
         try:
             if self._client.is_open():
+                self._lock.acquire()
                 self._write_data_fcn(self.tag["addr"], self.get_data())
+                self._lock.release()
         except Exception as e:
             print("Erro ao realizar a escrita do dado -> ")
             for e in e.args:
@@ -44,7 +47,7 @@ class DataCard(MDCard):
 
 
 class CardHoldingRegister(DataCard):
-    def __init__(self, tag: dict, client: ModbusClient):
+    def __init__(self, tag: dict, client: ModbusClient, **kwargs):
         super().__init__(tag, client)
         self._read_data = self._client.read_holding_registers
         self._write_data_fcn = self._client.write_single_register
@@ -57,7 +60,7 @@ class CardHoldingRegister(DataCard):
 
 
 class CardInputRegister(DataCard):
-    def __init__(self, tag: dict, client: ModbusClient):
+    def __init__(self, tag: dict, client: ModbusClient, **kwargs):
         super().__init__(tag, client)
         self._read_data = self._client.read_input_registers
 
@@ -66,7 +69,7 @@ class CardInputRegister(DataCard):
 
 
 class CardCoil(DataCard):
-    def __init__(self, tag: dict, client: ModbusClient):
+    def __init__(self, tag: dict, client: ModbusClient, **kwargs):
         super().__init__(tag, client)
         self._read_data = self._client.read_coils
         self._write_data_fcn = self._client.write_single_coil
@@ -75,4 +78,4 @@ class CardCoil(DataCard):
         self.ids.switch.active = data
 
     def get_data(self):
-        return self.ids.switch.active
+        return not self.ids.switch.active

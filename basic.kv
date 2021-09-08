@@ -18,7 +18,7 @@
                     font_size: '30sp'
                     padding: '10dp'
                     spacing: '5dp'
-                    
+
                     MDTextField:
                         id: hostname
                         text: '127.0.0.1'
@@ -28,7 +28,7 @@
                         pos_hint: {'center_x': 0.5, 'center_y': 0.2}
                     MDTextField:
                         id: port
-                        text: '502'
+                        text: '4000'
                         hint_text: 'Porta'
                         size_hint: (0.2, None)
                         height: '50dp'
@@ -64,14 +64,22 @@
                 name: 'anim'
                 text: 'Planta'
                 icon: 'factory'
-                FloatLayout:    
-                    id: desenho               
+                FloatLayout:
+                    id: desenho
                     canvas.before:
                         Color:
                             rgba: 0.5, 0.5, 0.5, 1
                         Rectangle:
                             pos: self.pos
                             size: self.size
+                    MDFloatingActionButton:
+                        icon: "cogs"
+                        on_touch_up: root.config_planta()
+                        # data: {}
+                        # root_button_anim: True
+                        #hint_animation: True
+                        # label_text_color: [1,1,1,1]
+                        # callback: root.config_planta
                     Image:
                         id: esteira_img
                         source: 'imgs/esteira.jpeg'
@@ -83,8 +91,8 @@
                 text: 'Gráficos'
                 icon: 'chart-line'
                 id: graph_nav
-                              
-                    
+
+
 
 <DataGraphWidget>:
     orientation: 'vertical'
@@ -103,7 +111,7 @@
         y_grid: True
         xmin: 0
         ymin: 0
-        ymax: 500 
+        ymax: 500
 
 
 <DataCard>:
@@ -138,3 +146,137 @@
     MDSwitch:
         id: switch
         on_press: root.write_data()
+
+<NewTagContent>
+    orientation: "horizontal"
+    spacing: "12dp"
+    adaptive_height: True
+    size_hint_y: None
+    height: "600dp"
+    BoxLayout:
+        orientation: "vertical"
+        BoxLayout:
+            orientation: "vertical"
+            BoxLayout:
+                orientation: "horizontal"
+                MDCheckbox:
+                    size_hint: 0.1,None
+                    on_active: root.update_filter(filt_key="filtro_est_1", *args)
+                MDLabel:
+                    size_hint: 0.4,None
+                    text: "Cor"
+                MDCheckbox:
+                    size_hint: 0.1,None
+                    on_active: root.update_filter(filt_key="filtro_est_1", *args)
+                MDLabel:
+                    size_hint: 0.4,None
+                    text: "Massa"
+            BoxLayout:
+                orientation: "horizontal"
+                MDCheckbox:
+                    size_hint: 0.1,None
+                    on_active: root.update_filter(filt_key="filtro_cor_r_1", *args)
+                MDLabel:
+                    size_hint: 0.7/3,None
+                    text: "Vermelho"
+                MDCheckbox:
+                    size_hint: 0.1,None
+                    on_active: root.update_filter(filt_key="filtro_cor_g_1", *args)
+                MDLabel:
+                    size_hint: 0.7/3,None
+                    text: "Verde"
+                MDCheckbox:
+                    size_hint: 0.1,None
+                    on_active: root.update_filter(filt_key="filtro_cor_b_1", *args)
+                MDLabel:
+                    size_hint: 0.7/3,None
+                    text: "Azul"
+            MDTextField:
+                helper_text: str(app.root._modbusdata["filtro_massa_1"])
+                multiline: False
+                # on_text_validate: root.update_filter
+
+            MDSeparator:
+                height: '1dp'
+        BoxLayout:
+            orientation: "vertical"
+            BoxLayout:
+                orientation: "horizontal"
+                MDCheckbox:
+                    size_hint: 0.1,None
+                    on_active: root.update_filter(filt_key="filtro_est_2", *args)
+                MDLabel:
+                    size_hint: 0.4,None
+                    text: "Cor"
+                MDCheckbox:
+                    size_hint: 0.1,None
+                    on_active: root.update_filter(filt_key="filtro_est_2", *args)
+                MDLabel:
+                    size_hint: 0.4,None
+                    text: "Massa"
+            BoxLayout:
+                orientation: "horizontal"
+                MDCheckbox:
+                    size_hint: 0.1,None
+                    on_active: root.update_filter(filt_key="filtro_cor_r_2", *args)
+                MDLabel:
+                    size_hint: 0.7/3,None
+                    text: "Vermelho"
+                MDCheckbox:
+                    size_hint: 0.1,None
+                    on_active: root.update_filter(filt_key="filtro_cor_g_2", *args)
+                MDLabel:
+                    size_hint: 0.7/3,None
+                    text: "Verde"
+                MDCheckbox:
+                    size_hint: 0.1,None
+                    on_active: root.update_filter(filt_key="filtro_cor_b_2", *args)
+                MDLabel:
+                    size_hint: 0.7/3,None
+                    text: "Azul"
+            MDTextField:
+                helper_text: str(app.root._modbusdata["filtro_massa_2"])
+                multiline: False
+                # on_text_validate: root.update_filter
+            MDSeparator:
+                height: '1dp'
+        BoxLayout:
+            orientation: "vertical"
+            BoxLayout:
+                orientation: "horizontal"
+                MDCheckbox:
+                    size_hint: 0.1,None
+                    on_active: root.update_filter(filt_key="filtro_est_3", *args)
+                MDLabel:
+                    size_hint: 0.4,None
+                    text: "Cor"
+                MDCheckbox:
+                    size_hint: 0.1,None
+                    on_active: root.update_filter(filt_key="filtro_est_3", *args)
+                MDLabel:
+                    size_hint: 0.4,None
+                    text: "Massa"
+            BoxLayout:
+                orientation: "horizontal"
+                MDCheckbox:
+                    size_hint: 0.1,None
+                    on_active: root.update_filter(filt_key="filtro_cor_r_3", *args)
+                MDLabel:
+                    size_hint: 0.7/3,None
+                    text: "Vermelho"
+                MDCheckbox:
+                    size_hint: 0.1,None
+                    on_active: root.update_filter(filt_key="filtro_cor_g_3", *args)
+                MDLabel:
+                    size_hint: 0.7/3,None
+                    text: "Verde"
+                MDCheckbox:
+                    size_hint: 0.1,None
+                    on_active: root.update_filter(filt_key="filtro_cor_b_3", *args)
+                MDLabel:
+                    size_hint: 0.7/3,None
+                    text: "Azul"
+            MDTextField:
+                helper_text: str(app.root._modbusdata["filtro_massa_3"])
+                multiline: False
+                # on_text_validate: root.update_filter
