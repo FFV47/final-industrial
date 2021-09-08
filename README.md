@@ -5,10 +5,10 @@
 1. Monitoramento em tempo real das grandezas do processo (20
 pontos):
 
-   - [ ] (8 pontos) Comunicação MODBUS com o CLP da planta
-   - [ ] (5 pontos) Tensão da rede, corrente RMS, potência de entrada, velocidade
+   - [X] (8 pontos) Comunicação MODBUS com o CLP da planta
+   - [X] (5 pontos) Tensão da rede, corrente RMS, potência de entrada, velocidade
      da esteira, rotação do motor, frequência do inversor, temperatura do estator
-   - [ ] (8 pontos) Comunicação MODBUS com o CLP da planta
+   - [ ] (7 pontos) Gráficos: Cores (RGB) e Peso do objeto.
 <!--  -->
 1. Capacidade de atuação no sistema (12 pontos):
 
@@ -19,16 +19,16 @@ pontos):
 <!--  -->
 3. Interface gráfica que represente de forma fidedigna o processo (28 pontos):
 
-   - [ ] (8 pontos) Imagem representativa da planta
-   - [ ] (7 pontos) Pelo menos uma animação no supervisório (deslocamento do objeto
+   - [X] (8 pontos) Imagem representativa da planta
+   - [X] (7 pontos) Pelo menos uma animação no supervisório (deslocamento do objeto
      na esteira, classificação, etc)
    - [ ] (2 pontos) Menu de configurações
    - [ ] (2 pontos) Mecanismos para atuação no processo (ver item 2)
    - [ ] (2 pontos) Separação de telas (monitoramento em tempo real e busca de dados históricos)
-   - [ ] (7 pontos) Deverá utilizar o framework kivyMD
+   - [X] (7 pontos) Deverá utilizar o framework kivyMD
 <!--  -->
 4. (7 pontos) Módulo de busca de dados históricos (15 pontos):
 
-   - [ ] (6 pontos) Armazenamento das principais informações do processo
+   - [X] (6 pontos) Armazenamento das principais informações do processo
    - [ ] (6 pontos) Permitir a busca de dados históricos das informações do processo
-   - [ ] (3 pontos) Deverá ser implementado utilizando a técnica ORM com o SQLAlchemy
+   - [X] (3 pontos) Deverá ser implementado utilizando a técnica ORM com o SQLAlchemy
