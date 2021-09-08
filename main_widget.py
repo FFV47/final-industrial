@@ -78,16 +78,17 @@ class MainWidget(MDScreen):
                 self._modclient.port = int(self.ids.port.text)
 
                 Window.set_system_cursor("wait")
-                self._modclient.open()
+                if self._modclient.open():
+                    self._start_process()
+
+                    Snackbar(
+                        text="Conexão realizada com sucesso", bg_color=(0, 1, 0, 1)
+                    ).open()
+                    # for card in self.ids.modbus_data.children:
+                    #     card.update_data()
+                else:
+                    print("Não foi possível conectar ao servidor")
                 Window.set_system_cursor("arrow")
-
-                self._start_process()
-
-                Snackbar(
-                    text="Conexão realizada com sucesso", bg_color=(0, 1, 0, 1)
-                ).show()
-                for card in self.ids.modbus_data.children:
-                    card.update_data()
 
                 # for card in self.ids.modbus_data.children:
                 #     if card.tag['type'] == "holding" or card.tag['type'] == "coil":
@@ -104,7 +105,7 @@ class MainWidget(MDScreen):
                     event.cancel()
 
             self._modclient.close()
-            Snackbar(text="Cliente desconectado", bg_color=(1, 0, 0, 1)).show()
+            Snackbar(text="Cliente desconectado", bg_color=(1, 0, 0, 1)).open()
 
     def _start_process(self):
         """
@@ -116,12 +117,15 @@ class MainWidget(MDScreen):
                 self._read_data()
                 self._update_filter_conf()
                 # Separa a interface do gerenciamento de dados
+
                 self.update_thread = Thread(target=self._updater_loop)
+                # Clock.schedule_interval(self._updater_loop,self._scan_time)
+
                 self.update_thread.start()
         except Exception as e:
             print("Erro ao iniciar thread ->", e.args[0])
 
-    def _updater_loop(self):
+    def _updater_loop(self,dt=None):
         """
         Método que invoca as rotinas de leitura dos dados, atualização da interface e inserção dos dados no banco de dados
         """
@@ -130,11 +134,13 @@ class MainWidget(MDScreen):
                 # ler os dados
                 self._read_data()
                 # atualizar a interface
-                self._update_gui()
+                Clock.schedule_once(self._update_gui)
+                
                 # gravar no banco de dados
                 # Qual a condição correta?????
                 if self._modbusdata["bt_on_off"] == 1:
                     self._write_to_DB()
+                    
                 sleep(self._scan_time)
         except Exception as e:
             print("Erro -> ", e.args)
@@ -175,7 +181,7 @@ class MainWidget(MDScreen):
         except:
             traceback.print_exc()
 
-    def _update_gui(self):
+    def _update_gui(self,dt=None):
         for card in self.ids.modbus_data.children:
             if card.tag["type"] != "coil" and card.tag["type"] != "holding":
 
@@ -212,29 +218,11 @@ class MainWidget(MDScreen):
                 self._modbusdata["filtro_cor_b_3"] / 255,
                 1,
             )
-
-            # Filtra o objeto da esteira principal de acordo com os filtros do MODBUS
-            # obj_est_1_cor = (
-            #     self._modbusdata["filtro_est_1"] == True and obj_color == filtro_cor_1
-            # )
-            # obj_est_1_massa = (
-            #     self._modbusdata["filtro_est_1"] == False
-            #     and self._current_obj["peso_obj"] == self._modbusdata["filtro_massa_1"]
-            # )
-            # obj_est_2_cor = (
-            #     self._modbusdata["filtro_est_2"] == True and obj_color == filtro_cor_2
-            # )
-            # obj_est_2_massa = (
-            #     self._modbusdata["filtro_est_2"] == False
-            #     and self._current_obj["peso_obj"] == self._modbusdata["filtro_massa_2"]
-            # )
-            # obj_est_3_cor = (
-            #     self._modbusdata["filtro_est_3"] == True and obj_color == filtro_cor_3
-            # )
-            # obj_est_3_massa = (
-            #     self._modbusdata["filtro_est_3"] == False
-            #     and self._current_obj["peso_obj"] == self._modbusdata["filtro_massa_3"]
-            # )
+            
+            # consulta qual filtro deve ser usado
+            use_cor_1 = self._modbusdata["filtro_est_1"]
+            use_cor_2 = self._modbusdata["filtro_est_2"]
+            use_cor_3 = self._modbusdata["filtro_est_3"]
 
             obj_est_1_cor = obj_color == filtro_cor_1
             obj_est_1_massa = (
@@ -251,23 +239,23 @@ class MainWidget(MDScreen):
                 self._current_obj["peso_obj"] == self._modbusdata["filtro_massa_3"]
             )
 
-            self.create_new_obj(obj_color)
+            new_obj = self.create_new_obj(obj_color)
 
-            if obj_est_1_cor or obj_est_1_massa:
-                self.rectangle.move_x([152, 645])
-                self._est_1_list.append(self.rectangle)
+            if (obj_est_1_cor and use_cor_1) or (obj_est_1_massa and not use_cor_1):
+                new_obj.move_x([152, 645])
+                self._est_1_list.append(new_obj)
 
-            elif obj_est_2_cor or obj_est_2_massa:
-                self.rectangle.move_x([295, 645])
-                self._est_2_list.append(self.rectangle)
+            elif (obj_est_2_cor and use_cor_2) or (obj_est_2_massa and use_cor_2):
+                new_obj.move_x([295, 645])
+                self._est_2_list.append(new_obj)
 
-            elif obj_est_3_cor or obj_est_3_massa:
-                self.rectangle.move_x([438, 645])
-                self._est_3_list.append(self.rectangle)
+            elif (obj_est_3_cor and use_cor_3) or (obj_est_3_massa and use_cor_3):
+                new_obj.move_x([438, 645])
+                self._est_3_list.append(new_obj)
 
             else:
-                self.rectangle.move_x([574, 645])
-                self._est_nc_list.append(self.rectangle)
+                new_obj.move_x([574, 645])
+                self._est_nc_list.append(new_obj)
             # self.update_obj_color()
 
         self.check_num_objs()
@@ -309,15 +297,16 @@ class MainWidget(MDScreen):
 
     def create_new_obj(self, color):
 
-        self.rectangle = ObjectWidget(
+        new_obj = ObjectWidget(
             size_img=self.size_img_esteira,
             obj_size=(50, 50),
             radius=[10, 10, 10, 10],
             pos_px=[762, 155],
             color=color,
         )
-        self.ids.desenho.add_widget(self.rectangle)
+        self.ids.desenho.add_widget(new_obj)
         # print(rectangle.get_size())
+        return new_obj
 
     def update_obj_color(self):
         print(self._current_obj)

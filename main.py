@@ -13,7 +13,7 @@ class BasicApp(MDApp):
         self.theme_cls.primary_hue = "500"
         self.theme_cls.accent_pallete = "Blue"
         self.main_widget = MainWidget(
-            scan_time=1, server_ip="127.0.0.1", server_port=40000
+            scan_time=1, server_ip="127.0.0.1", server_port=4000
         )
         return self.main_widget
 
