@@ -86,7 +86,8 @@
                             size: self.size
                     MDFloatingActionButton:
                         icon: "cogs"
-                        on_touch_up: root.config_planta()
+                        on_release: root.config_planta()
+                        pos_hint: {'center_x': 0.96, 'center_y': 0.07}
                         # data: {}
                         # root_button_anim: True
                         #hint_animation: True

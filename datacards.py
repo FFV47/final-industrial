@@ -8,12 +8,12 @@ from pyModbusTCP.client import ModbusClient
 class DataCard(MDCard):
     title = "Data Card"
 
-    def __init__(self, tag: dict, client: ModbusClient, **kwargs):
+    def __init__(self, tag: dict, client: ModbusClient, lock: Lock, **kwargs):
 
         self.tag = tag
         self.title = tag["description"]
         self._client = client
-        self._lock = Lock()
+        self._lock = lock
         super().__init__()
 
     def update_data(self):
@@ -51,7 +51,7 @@ class DataCard(MDCard):
 
 class CardHoldingRegister(DataCard):
     def __init__(self, tag: dict, client: ModbusClient, **kwargs):
-        super().__init__(tag, client)
+        super().__init__(tag, client, **kwargs)
         self._read_data = self._client.read_holding_registers
         self._write_data_fcn = self._client.write_single_register
 
@@ -64,7 +64,7 @@ class CardHoldingRegister(DataCard):
 
 class CardInputRegister(DataCard):
     def __init__(self, tag: dict, client: ModbusClient, **kwargs):
-        super().__init__(tag, client)
+        super().__init__(tag, client, **kwargs)
         self._read_data = self._client.read_input_registers
 
     def set_data(self, data):
@@ -73,7 +73,7 @@ class CardInputRegister(DataCard):
 
 class CardCoil(DataCard):
     def __init__(self, tag: dict, client: ModbusClient, **kwargs):
-        super().__init__(tag, client)
+        super().__init__(tag, client, **kwargs)
         self._read_data = self._client.read_coils
         self._write_data_fcn = self._client.write_single_coil
 

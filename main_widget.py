@@ -75,10 +75,10 @@ class MainWidget(MDScreen):
             if card.tag['description'] == filt_key:
                 if card.tag['type'] == 'holding':
                     card.set_data(int(value*255))
+                    card.write_data(value=int(value*255))
                 else:
                     card.set_data(value)
-
-                card.write_data(value=value)
+                    card.write_data(value=value)
 
 
     def show_dialog(self):
@@ -107,11 +107,11 @@ class MainWidget(MDScreen):
         """
         for tag in self._tags:
             if tag["type"] == "input":
-                self.ids.modbus_data.add_widget(CardInputRegister(tag, self._modclient))
+                self.ids.modbus_data.add_widget(CardInputRegister(tag, self._modclient, lock=self._lock))
             elif tag["type"] == "holding":
-                self.ids.modbus_data.add_widget(CardHoldingRegister(tag, self._modclient))
+                self.ids.modbus_data.add_widget(CardHoldingRegister(tag, self._modclient, lock=self._lock))
             elif tag["type"] == "coil":
-                self.ids.modbus_data.add_widget(CardCoil(tag, self._modclient))
+                self.ids.modbus_data.add_widget(CardCoil(tag, self._modclient, lock=self._lock))
 
     def connect(self):
         self._ev = []
