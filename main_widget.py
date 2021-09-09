@@ -42,7 +42,12 @@ class MainWidget(MDScreen):
         self._session = Session()
         self._lock = Lock()
         self.create_datacards()
+
         self._modbusdata = {}
+        for tag in self._tags:
+            tag_name = tag['description']
+            self._modbusdata[tag_name] = 0
+
         self._current_obj = {"peso_obj": 0}
         self.new_obj = False
         self.rectangle: ObjectWidget
@@ -69,28 +74,26 @@ class MainWidget(MDScreen):
          for card in self.ids.modbus_data.children:
             if card.tag['description'] == filt_key:
                 if card.tag['type'] == 'holding':
-                    card.set_data(int((not value)*255))
+                    card.set_data(int(value*255))
                 else:
-                    card.set_data(not value)
+                    card.set_data(value)
 
-                card.write_data()
+                card.write_data(value=value)
 
 
     def show_dialog(self):
         if not self.dialog:
             self.dialog = MDDialog(
-                title="Hab. dos Filtros",
+                title="Configuração dos Filtros",
                 type="custom",
                 content_cls= NewTagContent(self.update_filter),
                 buttons=[
                     MDFlatButton(
-                        text="Cancelar", on_release=self.close_dialog
-                    ),
-                    MDFlatButton(
-                        text="Criar", on_release=self.close_dialog
+                        text="Fechar", on_release=self.close_dialog
                     ),
                 ],
             )
+            self.dialog.content_cls.update_content(self._modbusdata)
 
         self.dialog.open()
 
@@ -200,12 +203,15 @@ class MainWidget(MDScreen):
 
                 value = None
 
+                self._lock.acquire()
+
                 if tag["type"] == "input":
                     value = self._modclient.read_input_registers(tag["addr"], 1)
                 elif tag["type"] == "holding":
                     value = self._modclient.read_holding_registers(tag["addr"], 1)
                 elif tag["type"] == "coil":
                     value = self._modclient.read_coils(tag["addr"], 1)
+                self._lock.release()
 
                 if value is not None:
                     self._modbusdata[tag_name] = value[0]

@@ -1,4 +1,4 @@
-#:kivy 2.0.0
+#: kivy 2.0.0
 
 <MainWidget>:
     BoxLayout:
@@ -145,138 +145,261 @@
 <CardCoil>:
     MDSwitch:
         id: switch
-        on_press: root.write_data()
+        on_active: root.write_data(*args)
 
 <NewTagContent>
     orientation: "horizontal"
     spacing: "12dp"
     adaptive_height: True
     size_hint_y: None
-    height: "600dp"
+    height: "400dp"
     BoxLayout:
         orientation: "vertical"
         BoxLayout:
             orientation: "vertical"
+            MDSeparator:
+                height: '1dp'
+            MDLabel:
+                # size_hint: 0.4,1
+                text: "Esteira 1"
+                halign: "center"
+                valign: "bottom"
             BoxLayout:
                 orientation: "horizontal"
                 MDCheckbox:
-                    size_hint: 0.1,None
-                    on_active: root.update_filter(filt_key="filtro_est_1", *args)
+                    group: 'est1'
+                    id: filtro_est_1
+                    size: dp(48), dp(48)
+                    size_hint: None,None
+                    pos_hint: {'center_x': 0.5, 'center_y': 0.5}
+                    on_active: root.update_filter(filt_key="filtro_est_1", filt_type="Cor", *args)
                 MDLabel:
-                    size_hint: 0.4,None
+                    size_hint: 0.4,1
                     text: "Cor"
+                    # halign: "left"
+                    valign: "bottom"
                 MDCheckbox:
-                    size_hint: 0.1,None
-                    on_active: root.update_filter(filt_key="filtro_est_1", *args)
+                    group: 'est1'
+                    id: filtro_est_1_massa
+                    size: dp(48), dp(48)
+                    size_hint: None,None
+                    on_active: root.update_filter(filt_key="filtro_est_1", filt_type="Massa", *args)
                 MDLabel:
-                    size_hint: 0.4,None
+                    size_hint: 0.4,1
                     text: "Massa"
+                    valign: "bottom"
             BoxLayout:
                 orientation: "horizontal"
                 MDCheckbox:
-                    size_hint: 0.1,None
+                    group: None
+                    id: filtro_cor_r_1
+                    size: dp(48), dp(48)
+                    size_hint: None,None
+                    selected_color: 1,0,0,1
+                    unselected_color: 1,0,0,1
+                    pos_hint: {'center_x': 0.5, 'center_y': 0.5}
                     on_active: root.update_filter(filt_key="filtro_cor_r_1", *args)
                 MDLabel:
-                    size_hint: 0.7/3,None
-                    text: "Vermelho"
+                    size_hint: 1/2/6,1
+                    text: "R"
+                    valign: "bottom"
                 MDCheckbox:
-                    size_hint: 0.1,None
+                    id: filtro_cor_g_1
+                    size: dp(48), dp(48)
+                    size_hint: None,None
+                    selected_color: 0,1,0,1
+                    unselected_color: 0,1,0,1
+                    pos_hint: {'center_x': 0.5, 'center_y': 0.5}
                     on_active: root.update_filter(filt_key="filtro_cor_g_1", *args)
                 MDLabel:
-                    size_hint: 0.7/3,None
-                    text: "Verde"
+                    size_hint: 1/2/6,1
+                    text: "G"
+                    valign: "bottom"
                 MDCheckbox:
-                    size_hint: 0.1,None
+                    id: filtro_cor_b_1
+                    size: dp(48), dp(48)
+                    size_hint: None,None
+                    selected_color: 0,0,1,1
+                    unselected_color: 0,0,1,1
+                    pos_hint: {'center_x': 0.5, 'center_y': 0.5}
                     on_active: root.update_filter(filt_key="filtro_cor_b_1", *args)
                 MDLabel:
-                    size_hint: 0.7/3,None
-                    text: "Azul"
-            MDTextField:
-                helper_text: str(app.root._modbusdata["filtro_massa_1"])
-                multiline: False
-                # on_text_validate: root.update_filter
+                    size_hint: 1/2/6,1
+                    text: "B"
+                    valign: "bottom"
+                MDLabel:
+                    size_hint: 1/2/2, 1
+                    text: "Massa >= "
+                    valign: "center"
+                    halign: "right"
+                MDTextField:
+                    size_hint: 1/2/2, None
+                    helper_text: str(app.root._modbusdata["filtro_massa_1"])
+                    pos_hint: {'center_x': 0.5, 'center_y': 0.5}
+                    multiline: False
+                    # on_text_validate: root.update_filter
 
             MDSeparator:
                 height: '1dp'
         BoxLayout:
             orientation: "vertical"
+            MDLabel:
+                # size_hint: 0.4,1
+                text: "Esteira 2"
+                halign: "center"
+                valign: "bottom"
             BoxLayout:
                 orientation: "horizontal"
                 MDCheckbox:
-                    size_hint: 0.1,None
-                    on_active: root.update_filter(filt_key="filtro_est_2", *args)
+                    group: 'est2'
+                    id: filtro_est_2
+                    size: dp(48), dp(48)
+                    size_hint: None,None
+                    pos_hint: {'center_x': 0.5, 'center_y': 0.5}
+                    on_active: root.update_filter(filt_key="filtro_est_2", filt_type="Cor", *args)
                 MDLabel:
-                    size_hint: 0.4,None
+                    size_hint: 0.4,1
                     text: "Cor"
+                    valign: "bottom"
                 MDCheckbox:
-                    size_hint: 0.1,None
-                    on_active: root.update_filter(filt_key="filtro_est_2", *args)
+                    group: 'est2'
+                    id: filtro_est_2_massa
+                    size: dp(48), dp(48)
+                    size_hint: None,None
+                    pos_hint: {'center_x': 0.5, 'center_y': 0.5}
+                    on_active: root.update_filter(filt_key="filtro_est_2", filt_type="Massa", *args)
                 MDLabel:
-                    size_hint: 0.4,None
+                    size_hint: 0.4,1
                     text: "Massa"
+                    valign: "bottom"
             BoxLayout:
                 orientation: "horizontal"
                 MDCheckbox:
-                    size_hint: 0.1,None
+                    id: filtro_cor_r_2
+                    size: dp(48), dp(48)
+                    size_hint: None,None
+                    selected_color: 1,0,0,1
+                    unselected_color: 1,0,0,1
+                    pos_hint: {'center_x': 0.5, 'center_y': 0.5}
                     on_active: root.update_filter(filt_key="filtro_cor_r_2", *args)
                 MDLabel:
-                    size_hint: 0.7/3,None
-                    text: "Vermelho"
+                    size_hint: 1/2/6,1
+                    valign: "bottom"
+                    text: "R"
                 MDCheckbox:
-                    size_hint: 0.1,None
+                    id: filtro_cor_g_2
+                    size: dp(48), dp(48)
+                    size_hint: None,None
+                    selected_color: 0,1,0,1
+                    unselected_color: 0,1,0,1
+                    pos_hint: {'center_x': 0.5, 'center_y': 0.5}
                     on_active: root.update_filter(filt_key="filtro_cor_g_2", *args)
                 MDLabel:
-                    size_hint: 0.7/3,None
-                    text: "Verde"
+                    size_hint: 1/2/6,1
+                    valign: "bottom"
+                    text: "G"
                 MDCheckbox:
-                    size_hint: 0.1,None
+                    id: filtro_cor_b_2
+                    size: dp(48), dp(48)
+                    size_hint: None,None
+                    selected_color: 0,0,1,1
+                    unselected_color: 0,0,1,1
+                    pos_hint: {'center_x': 0.5, 'center_y': 0.5}
                     on_active: root.update_filter(filt_key="filtro_cor_b_2", *args)
                 MDLabel:
-                    size_hint: 0.7/3,None
-                    text: "Azul"
-            MDTextField:
-                helper_text: str(app.root._modbusdata["filtro_massa_2"])
-                multiline: False
-                # on_text_validate: root.update_filter
+                    size_hint: 1/2/6,1
+                    valign: "bottom"
+                    text: "B"
+                MDLabel:
+                    size_hint: 1/2/2, 1
+                    text: "Massa >= "
+                    valign: "center"
+                    halign: "right"
+                MDTextField:
+                    size_hint: 1/2/2, None
+                    helper_text: str(app.root._modbusdata["filtro_massa_1"])
+                    pos_hint: {'center_x': 0.5, 'center_y': 0.5}
+                    multiline: False
             MDSeparator:
                 height: '1dp'
         BoxLayout:
             orientation: "vertical"
+            MDLabel:
+                # size_hint: 0.4,1
+                text: "Esteira 3"
+                halign: "center"
+                valign: "bottom"
             BoxLayout:
                 orientation: "horizontal"
                 MDCheckbox:
-                    size_hint: 0.1,None
-                    on_active: root.update_filter(filt_key="filtro_est_3", *args)
+                    group: 'est3'
+                    id: filtro_est_3
+                    size: dp(48), dp(48)
+                    size_hint: None,None
+                    pos_hint: {'center_x': 0.5, 'center_y': 0.5}
+                    on_active: root.update_filter(filt_key="filtro_est_3", filt_type="Cor", *args)
                 MDLabel:
-                    size_hint: 0.4,None
+                    size_hint: 0.4,1
+                    valign: "bottom"
                     text: "Cor"
                 MDCheckbox:
-                    size_hint: 0.1,None
-                    on_active: root.update_filter(filt_key="filtro_est_3", *args)
+                    group: 'est3'
+                    id: filtro_est_3_massa
+                    size: dp(48), dp(48)
+                    size_hint: None,None
+                    pos_hint: {'center_x': 0.5, 'center_y': 0.5}
+                    on_active: root.update_filter(filt_key="filtro_est_3", filt_type="Massa", *args)
                 MDLabel:
-                    size_hint: 0.4,None
+                    size_hint: 0.4,1
+                    valign: "bottom"
                     text: "Massa"
             BoxLayout:
                 orientation: "horizontal"
                 MDCheckbox:
-                    size_hint: 0.1,None
+                    id: filtro_cor_r_3
+                    size: dp(48), dp(48)
+                    size_hint: None,None
+                    selected_color: 1,0,0,1
+                    unselected_color: 1,0,0,1
+                    pos_hint: {'center_x': 0.5, 'center_y': 0.5}
                     on_active: root.update_filter(filt_key="filtro_cor_r_3", *args)
                 MDLabel:
-                    size_hint: 0.7/3,None
-                    text: "Vermelho"
+                    size_hint: 1/2/6,1
+                    valign: "bottom"
+                    text: "R"
                 MDCheckbox:
-                    size_hint: 0.1,None
+                    id: filtro_cor_g_3
+                    size: dp(48), dp(48)
+                    size_hint: None,None
+                    selected_color: 0,1,0,1
+                    unselected_color: 0,1,0,1
+                    pos_hint: {'center_x': 0.5, 'center_y': 0.5}
                     on_active: root.update_filter(filt_key="filtro_cor_g_3", *args)
                 MDLabel:
-                    size_hint: 0.7/3,None
-                    text: "Verde"
+                    size_hint: 1/2/6,1
+                    valign: "bottom"
+                    text: "G"
                 MDCheckbox:
-                    size_hint: 0.1,None
+                    id: filtro_cor_b_3
+                    size: dp(48), dp(48)
+                    size_hint: None,None
+                    selected_color: 0,0,1,1
+                    unselected_color: 0,0,1,1
+                    pos_hint: {'center_x': 0.5, 'center_y': 0.5}
                     on_active: root.update_filter(filt_key="filtro_cor_b_3", *args)
                 MDLabel:
-                    size_hint: 0.7/3,None
-                    text: "Azul"
-            MDTextField:
-                helper_text: str(app.root._modbusdata["filtro_massa_3"])
-                multiline: False
-                # on_text_validate: root.update_filter
+                    size_hint: 1/2/6,1
+                    valign: "bottom"
+                    text: "B"
+                MDLabel:
+                    size_hint: 1/2/2, 1
+                    text: "Massa >= "
+                    valign: "center"
+                    halign: "right"
+                MDTextField:
+                    size_hint: 1/2/2, None
+                    helper_text: str(app.root._modbusdata["filtro_massa_1"])
+                    pos_hint: {'center_x': 0.5, 'center_y': 0.5}
+                    multiline: False
+            MDSeparator:
+                height: '1dp'

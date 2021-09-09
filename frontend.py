@@ -16,8 +16,21 @@ class NewTagContent(BoxLayout):
         self.update_func = update_func
         super().__init__(**kwargs)
 
-    def update_filter(self, checkbox, value, filt_key):
-        self.update_func(filt_key, value)
+    def update_filter(self, checkbox, value, filt_key, filt_type=None):
+        if filt_type == "Massa":
+            value = not value
+        if isinstance(value,bool):
+            self.update_func(filt_key, value)
+
+    def update_content(self, modbusdata):
+        ids = self.ids.keys()
+        valid_keys = set(ids).intersection(modbusdata.keys())
+        for key in valid_keys:
+            self.ids[key].active = modbusdata[key]
+        self.ids['filtro_est_1_massa'].active = not modbusdata['filtro_est_1']
+        self.ids['filtro_est_2_massa'].active = not modbusdata['filtro_est_2']
+        self.ids['filtro_est_3_massa'].active = not modbusdata['filtro_est_3']
+        
 
 
 class DataGraphWidget(BoxLayout):
