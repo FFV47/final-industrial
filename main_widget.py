@@ -19,6 +19,7 @@ from models import EsteiraPrincipal, EsteiraSecundaria, Filtro
 from orm_engine import init_db
 import traceback
 
+
 class MainWidget(MDScreen):
 
     _is_update_enabled = True
@@ -46,15 +47,13 @@ class MainWidget(MDScreen):
 
         self._modbusdata = {}
         for tag in self._tags:
-            tag_name = tag['description']
+            tag_name = tag["description"]
             self._modbusdata[tag_name] = 0
-
 
         self._current_obj = {}
         self._current_obj["peso_obj"] = 0
         self.new_obj = False
-        # self.rectangle: ObjectWidget
-        
+
         self._current_obj["cor_obj_R"] = 0
         self._current_obj["cor_obj_G"] = 0
         self._current_obj["cor_obj_B"] = 0
@@ -71,37 +70,30 @@ class MainWidget(MDScreen):
         self.dialog_hist = None
 
         # pode ser do tipo 'realtime' ou 'hist'
-        self.graph_type = 'realtime'
-
-        # self.moving_obj = self.create_new_obj([760,154],(1,0,0,1))
-        # self.moving_obj.move_x([150,650])
-
+        self.graph_type = "realtime"
 
     def config_planta(self):
         self.show_dialog()
         print("Config planta")
 
     def update_filter(self, filt_key, value):
-         for card in self.ids.modbus_data.children:
-            if card.tag['description'] == filt_key:
-                if card.tag['type'] == 'holding':
-                    card.set_data(int(value*255))
-                    card.write_data(value=int(value*255))
+        for card in self.ids.modbus_data.children:
+            if card.tag["description"] == filt_key:
+                if card.tag["type"] == "holding":
+                    card.set_data(int(value * 255))
+                    card.write_data(value=int(value * 255))
                 else:
                     card.set_data(value)
                     card.write_data(value=value)
-
 
     def show_dialog(self):
         if not self.dialog:
             self.dialog = MDDialog(
                 title="Configuração dos Filtros",
                 type="custom",
-                content_cls= NewTagContent(self.update_filter),
+                content_cls=NewTagContent(self.update_filter),
                 buttons=[
-                    MDFlatButton(
-                        text="Fechar", on_release=self.close_dialog
-                    ),
+                    MDFlatButton(text="Fechar", on_release=self.close_dialog),
                 ],
             )
             self.dialog.content_cls.update_content(self._modbusdata)
@@ -111,47 +103,36 @@ class MainWidget(MDScreen):
     def close_dialog(self, *args):
         self.dialog.dismiss(force=True)
 
-    
     def show_dialog_hist(self):
         if not self.dialog_hist:
             self.dialog_hist = MDDialog(
-                title = "Dados Históricos",
-                type = "custom",
-                content_cls = GraphConfigContent(self.read_dados_historicos),
-                buttons = [
-                    MDFlatButton(
-                        text='Fechar', on_release=self.close_dialog_hist
-                    ),
-                    MDFlatButton(
-                        text='Salvar', on_release=self.update_graph
-                    ),
+                title="Dados Históricos",
+                type="custom",
+                content_cls=GraphConfigContent(self.read_dados_historicos),
+                buttons=[
+                    MDFlatButton(text="Fechar", on_release=self.close_dialog_hist),
+                    MDFlatButton(text="Salvar", on_release=self.update_graph),
                 ],
             )
-            # self.dialog_hist.content_cls.update_content(self._modbusdata)
-        
+
         self.dialog_hist.open()
-    
+
     def read_dados_historicos(self, timestamps, cols):
         try:
-            init_date = datetime.strptime(
-                timestamps[0], "%d/%m/%Y %H:%M:%S"
-            )
-            final_date = datetime.strptime(
-                timestamps[1], "%d/%m/%Y %H:%M:%S"
-            )
+            init_date = datetime.strptime(timestamps[0], "%d/%m/%Y %H:%M:%S")
+            final_date = datetime.strptime(timestamps[1], "%d/%m/%Y %H:%M:%S")
 
             self._lock.acquire()
-            query = self._session.query(EsteiraPrincipal).filter(EsteiraPrincipal.timestamp.between(init_date, final_date)).all()
+            query = (
+                self._session.query(EsteiraPrincipal)
+                .filter(EsteiraPrincipal.timestamp.between(init_date, final_date))
+                .all()
+            )
             self._lock.release()
-            
+
             dados = {}
             for col in cols:
-                if col == "timestamp":
-                    dados[col] = [
-                        getattr(obj, col).strftime("%d/%m/%Y %H:%M:%S") for obj in query
-                    ]
-                else:
-                    dados[col] = [getattr(obj, col) for obj in query]
+                dados[col] = [getattr(obj, col) for obj in query]
 
             if dados is None or len(dados["timestamp"]) == 0:
                 return None
@@ -159,25 +140,29 @@ class MainWidget(MDScreen):
             return dados
 
         except Exception as e:
-            print("Erro na coleta de dados -> ", e.args[0])
+            print("Erro na coleta de dados -> ", e.args)
             traceback.print_exc()
-    
+
     def close_dialog_hist(self, *args):
         self.dialog_hist.dismiss(force=True)
-        
-    
-    
+
     def create_datacards(self):
         """
         Cria os cards widgets na interface
         """
         for tag in self._tags:
             if tag["type"] == "input":
-                self.ids.modbus_data.add_widget(CardInputRegister(tag, self._modclient, lock=self._lock))
+                self.ids.modbus_data.add_widget(
+                    CardInputRegister(tag, self._modclient, lock=self._lock)
+                )
             elif tag["type"] == "holding":
-                self.ids.modbus_data.add_widget(CardHoldingRegister(tag, self._modclient, lock=self._lock))
+                self.ids.modbus_data.add_widget(
+                    CardHoldingRegister(tag, self._modclient, lock=self._lock)
+                )
             elif tag["type"] == "coil":
-                self.ids.modbus_data.add_widget(CardCoil(tag, self._modclient, lock=self._lock))
+                self.ids.modbus_data.add_widget(
+                    CardCoil(tag, self._modclient, lock=self._lock)
+                )
 
     def connect(self):
         self._ev = []
@@ -197,16 +182,9 @@ class MainWidget(MDScreen):
                     Snackbar(
                         text="Conexão realizada com sucesso", bg_color=(0, 1, 0, 1)
                     ).open()
-                    # for card in self.ids.modbus_data.children:
-                    #     card.update_data()
                 else:
                     print("Não foi possível conectar ao servidor")
 
-                # for card in self.ids.modbus_data.children:
-                #     if card.tag['type'] == "holding" or card.tag['type'] == "coil":
-                #         self._ev.append(Clock.schedule_once(card.update_data))
-                #     else:
-                # self._ev.append(Clock.schedule_interval(card.update_data,self._scan_time))
             except Exception as e:
                 print("Erro ao realizar a conexão com o servidor: ", e.args)
         else:
@@ -231,13 +209,12 @@ class MainWidget(MDScreen):
                 # Separa a interface do gerenciamento de dados
 
                 self.update_thread = Thread(target=self._updater_loop)
-                # Clock.schedule_interval(self._updater_loop,self._scan_time)
 
                 self.update_thread.start()
         except Exception as e:
             print("Erro ao iniciar thread ->", e.args[0])
 
-    def _updater_loop(self,dt=None):
+    def _updater_loop(self, dt=None):
         """
         Método que invoca as rotinas de leitura dos dados, atualização da interface e inserção dos dados no banco de dados
         """
@@ -249,9 +226,7 @@ class MainWidget(MDScreen):
                 Clock.schedule_once(self._update_gui)
 
                 # gravar no banco de dados
-                # Qual a condição correta?????
-                if self._modbusdata["bt_on_off"] == 1:
-                    self._write_to_DB()
+                self._write_to_DB()
 
                 sleep(self._scan_time)
         except Exception as e:
@@ -292,17 +267,13 @@ class MainWidget(MDScreen):
                 self._current_obj["cor_obj_R"] = self._modbusdata["cor_obj_R"]
                 self._current_obj["cor_obj_G"] = self._modbusdata["cor_obj_G"]
                 self._current_obj["cor_obj_B"] = self._modbusdata["cor_obj_B"]
-                print(self._current_obj)
         except:
             traceback.print_exc()
 
-    def _update_gui(self,dt=None):
+    def _update_gui(self, dt=None):
         for card in self.ids.modbus_data.children:
             if card.tag["type"] != "coil" and card.tag["type"] != "holding":
-
                 card.set_data(self._modbusdata[card.tag["description"]])
-            # elif card.tag['description'] == 'filtro_est_1':
-            #     print("filtro_est_1 = ",self._modbusdata[card.tag['description']])
 
         if self.new_obj:
             self.new_obj = False
@@ -356,8 +327,6 @@ class MainWidget(MDScreen):
 
             new_obj = self.create_new_obj(obj_color)
 
-            print(use_cor_1," ",use_cor_2," ",use_cor_3," ")
-
             if (obj_est_1_cor and use_cor_1) or (obj_est_1_massa and not use_cor_1):
                 new_obj.move_x([152, 645])
                 self._est_1_list.append(new_obj)
@@ -373,43 +342,60 @@ class MainWidget(MDScreen):
             else:
                 new_obj.move_x([574, 645])
                 self._est_nc_list.append(new_obj)
-            # self.update_obj_color()
 
         self.check_num_objs()
 
-        if self.graph_type == 'realtime':
-            self._graph.ids.graph_peso.updateGraph((datetime.now(), self._modbusdata["peso_obj"]), 0)
-            self._graph.ids.graph_R.updateGraph((datetime.now(),self._modbusdata["cor_obj_R"]),0)
-            self._graph.ids.graph_G.updateGraph((datetime.now(),self._modbusdata["cor_obj_G"]),0)
-            self._graph.ids.graph_B.updateGraph((datetime.now(),self._modbusdata["cor_obj_B"]),0)
+        if self.graph_type == "realtime":
+            self._graph.ids.graph_peso.updateGraph(
+                (datetime.now(), self._modbusdata["peso_obj"]), 0
+            )
+            self._graph.ids.graph_R.updateGraph(
+                (datetime.now(), self._modbusdata["cor_obj_R"]), 0
+            )
+            self._graph.ids.graph_G.updateGraph(
+                (datetime.now(), self._modbusdata["cor_obj_G"]), 0
+            )
+            self._graph.ids.graph_B.updateGraph(
+                (datetime.now(), self._modbusdata["cor_obj_B"]), 0
+            )
 
-    def update_graph(self,button):
+    def update_graph(self, button):
 
         show_peso = self.dialog_hist.content_cls.ids.graph_peso.active
         show_R = self.dialog_hist.content_cls.ids.graph_R.active
         show_G = self.dialog_hist.content_cls.ids.graph_G.active
         show_B = self.dialog_hist.content_cls.ids.graph_B.active
 
-        graph_id_tag = {"graph_peso": "peso_obj", "graph_R": "cor_obj_R", "graph_G": "cor_obj_G", "graph_B": "cor_obj_B"}
-        show_graphs = {"graph_peso": show_peso, "graph_R":show_R, "graph_G":show_G, "graph_B":show_B}
-
-        if self.dialog_hist.content_cls.ids.realtime.active:
-            self.graph_type = 'realtime'
-        else:
-            self.graph_type = 'hist'
-            timestamps = [self.dialog_hist.content_cls.ids.init_date_txt.text, self.dialog_hist.content_cls.ids.final_date_txt.text]
-            print(timestamps)
-            cols = ['timestamp']
-            for key,value in show_graphs.items():
-                if value == True:
-                    cols.append(graph_id_tag[key])
-            dados_hist = self.read_dados_historicos(timestamps, cols)
-            print(dados_hist)
+        graph_id_tag = {
+            "graph_peso": "peso_obj",
+            "graph_R": "cor_obj_R",
+            "graph_G": "cor_obj_G",
+            "graph_B": "cor_obj_B",
+        }
+        show_graphs = {
+            "graph_peso": show_peso,
+            "graph_R": show_R,
+            "graph_G": show_G,
+            "graph_B": show_B,
+        }
 
         self._graph.update_graph_config(self.graph_type, show_graphs)
-        self._graph.update_graph_dados_hist(dados_hist)
 
+        if self.dialog_hist.content_cls.ids.realtime.active:
+            self.graph_type = "realtime"
+        elif self.dialog_hist.content_cls.ids.hist.active:
+            self.graph_type = "hist"
+            timestamps = [
+                self.dialog_hist.content_cls.ids.init_date_txt.text,
+                self.dialog_hist.content_cls.ids.final_date_txt.text,
+            ]
+            cols = ["timestamp"]
+            for key, value in show_graphs.items():
+                if value is True:
+                    cols.append(graph_id_tag[key])
+            dados_hist = self.read_dados_historicos(timestamps, cols)
 
+            self._graph.update_graph_dados_hist(dados_hist)
 
     def check_num_objs(self):
         if (
@@ -453,11 +439,9 @@ class MainWidget(MDScreen):
             color=color,
         )
         self.ids.desenho.add_widget(new_obj)
-        # print(rectangle.get_size())
         return new_obj
 
     def update_obj_color(self):
-        print(self._current_obj)
         self.rectangle.update_color(
             (
                 self._current_obj["cor_obj_R"],
@@ -469,6 +453,7 @@ class MainWidget(MDScreen):
 
     def _write_to_DB(self):
         principal = EsteiraPrincipal(
+            timestamp=datetime.now().replace(microsecond=0),
             estado_atuador=self._modbusdata["estado_atuador"],
             bt_on_off=self._modbusdata["bt_on_off"],
             t_part=self._modbusdata["t_part"],
@@ -488,6 +473,7 @@ class MainWidget(MDScreen):
         )
 
         secundaria = EsteiraSecundaria(
+            timestamp=datetime.now().replace(microsecond=0),
             num_obj_est_1=self._modbusdata["num_obj_est_1"],
             num_obj_est_2=self._modbusdata["num_obj_est_2"],
             num_obj_est_3=self._modbusdata["num_obj_est_3"],
@@ -505,6 +491,7 @@ class MainWidget(MDScreen):
 
     def _update_filter_DB(self):
         filtro = Filtro(
+            timestamp=datetime.now().replace(microsecond=0),
             cor_r_1=self._modbusdata["filtro_cor_r_1"],
             cor_g_1=self._modbusdata["filtro_cor_g_1"],
             cor_b_1=self._modbusdata["filtro_cor_b_1"],

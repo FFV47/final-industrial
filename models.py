@@ -13,7 +13,7 @@ class EsteiraPrincipal(Base):
 
     __tablename__ = "esteira_main"
     id = Column(Integer, primary_key=True, index=True)
-    timestamp = Column(DateTime, server_default=func.now())
+    timestamp = Column(DateTime)
     estado_atuador = Column(Boolean)
     bt_on_off = Column(Boolean)
     t_part = Column(Float)
@@ -43,7 +43,7 @@ class EsteiraSecundaria(Base):
     __tablename__ = "esteira_sec"
 
     id = Column(Integer, primary_key=True, index=True)
-    timestamp = Column(DateTime, server_default=func.now())
+    timestamp = Column(DateTime)
     num_obj_est_1 = Column(Integer)
     num_obj_est_2 = Column(Integer)
     num_obj_est_3 = Column(Integer)
@@ -64,7 +64,7 @@ class Filtro(Base):
     __tablename__ = "filtro_conf"
 
     id = Column(Integer, primary_key=True, index=True)
-    timestamp = Column(DateTime, server_default=func.now())
+    timestamp = Column(DateTime)
     cor_r_1 = Column(Integer)
     cor_g_1 = Column(Integer)
     cor_b_1 = Column(Integer)

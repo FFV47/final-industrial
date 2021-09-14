@@ -19,7 +19,7 @@ class NewTagContent(BoxLayout):
     def update_filter(self, checkbox, value, filt_key, filt_type=None):
         if filt_type == "Massa":
             value = not value
-        if isinstance(value,bool):
+        if isinstance(value, bool):
             self.update_func(filt_key, value)
 
     def update_content(self, modbusdata):
@@ -27,79 +27,90 @@ class NewTagContent(BoxLayout):
         valid_keys = set(ids).intersection(modbusdata.keys())
         for key in valid_keys:
             self.ids[key].active = modbusdata[key]
-        self.ids['filtro_est_1_massa'].active = not modbusdata['filtro_est_1']
-        self.ids['filtro_est_2_massa'].active = not modbusdata['filtro_est_2']
-        self.ids['filtro_est_3_massa'].active = not modbusdata['filtro_est_3']
+        self.ids["filtro_est_1_massa"].active = not modbusdata["filtro_est_1"]
+        self.ids["filtro_est_2_massa"].active = not modbusdata["filtro_est_2"]
+        self.ids["filtro_est_3_massa"].active = not modbusdata["filtro_est_3"]
 
 
 class GraphConfigContent(BoxLayout):
     def __init__(self, update_func, **kwargs):
         self.update_func = update_func
-        self.graph_type = 'realtime'
+        self.graph_type = "realtime"
         super().__init__(**kwargs)
 
     def update_config(self, checkbox, value, filt_key, graph_type=None):
         if self.graph_type != graph_type:
-            if isinstance(value,bool):
+            if isinstance(value, bool):
                 self.update_func(filt_key, value)
-
-    # def update_content(self, modbusdata):
-    #     ids = self.ids.keys()
-    #     valid_keys = set(ids).intersection(modbusdata.keys())
-    #     for key in valid_keys:
-    #         self.ids[key].active = modbusdata[key]
-    #     self.ids['filtro_est_1_massa'].active = not modbusdata['filtro_est_1']
-    #     self.ids['filtro_est_2_massa'].active = not modbusdata['filtro_est_2']
-    #     self.ids['filtro_est_3_massa'].active = not modbusdata['filtro_est_3']
-        
 
 
 class DataGraphWidget(BoxLayout):
     def __init__(self, xmax, plot_color, **kwargs):
         super().__init__(**kwargs)
 
-        self.graph_type = 'realtime'
+        self.graph_type = "realtime"
 
+        self.xmax = xmax
         self.graph_dict = {}
 
-        self.plot = LinePlot(line_width=1.5, color=(1,1,1,1))
+        self.plot = LinePlot(line_width=1.5, color=(1, 1, 1, 1))
         self.ids.graph_peso.add_plot(self.plot)
         self.ids.graph_peso.xmax = xmax
 
         self.graph_dict["graph_peso"] = self.ids["graph_peso"]
 
-        self.plot = LinePlot(line_width=1.5, color=(1,0,0,1))
+        self.plot = LinePlot(line_width=1.5, color=(1, 0, 0, 1))
         self.ids.graph_R.add_plot(self.plot)
         self.ids.graph_R.xmax = xmax
 
         self.graph_dict["graph_R"] = self.ids["graph_R"]
 
-        self.plot = LinePlot(line_width=1.5, color=(0,1,0,1))
+        self.plot = LinePlot(line_width=1.5, color=(0, 1, 0, 1))
         self.ids.graph_G.add_plot(self.plot)
         self.ids.graph_G.xmax = xmax
-        
+
         self.graph_dict["graph_G"] = self.ids["graph_G"]
 
-        self.plot = LinePlot(line_width=1.5, color=(0,0,1,1))
+        self.plot = LinePlot(line_width=1.5, color=(0, 0, 1, 1))
         self.ids.graph_B.add_plot(self.plot)
         self.ids.graph_B.xmax = xmax
 
         self.graph_dict["graph_B"] = self.ids["graph_B"]
 
         self.graph_ids = ["graph_peso", "graph_R", "graph_G", "graph_B"]
-        self.active_graphs = {"graph_peso":True, "graph_R":True, "graph_G":True, "graph_B":True}
-        graph_id_tag = {"graph_peso": "peso_obj", "graph_R": "cor_obj_R", "graph_G": "cor_obj_G", "graph_B": "cor_obj_B"}
+        self.active_graphs = {
+            "graph_peso": True,
+            "graph_R": True,
+            "graph_G": True,
+            "graph_B": True,
+        }
+        self.graph_id_tag = {
+            "graph_peso": "peso_obj",
+            "graph_R": "cor_obj_R",
+            "graph_G": "cor_obj_G",
+            "graph_B": "cor_obj_B",
+        }
+
+        self.graph_colors = {
+            "graph_peso": (1, 1, 1, 1),
+            "graph_R": (1, 0, 0, 1),
+            "graph_G": (0, 1, 0, 1),
+            "graph_B": (0, 0, 1, 1),
+        }
 
     def update_graph_config(self, graph_type, show_graphs):
         if self.graph_type != graph_type:
             self.graph_type = graph_type
             update_graph_type = True
         else:
-            update_graph_type = False 
+            update_graph_type = False
 
-        if update_graph_type:
+        if update_graph_type and self.graph_type == "realtime":
             for graph in self.graph_dict.values():
                 graph.clearPlots()
+                plot = LinePlot(line_width=1.5, color=(1, 1, 1, 1))
+                graph.add_plot(plot)
+                graph.xmax = self.xmax
         for graph_id in self.graph_ids:
             graph = self.graph_dict[graph_id]
             if self.active_graphs[graph_id] != show_graphs[graph_id]:
@@ -110,21 +121,20 @@ class DataGraphWidget(BoxLayout):
                     self.remove_widget(self.graph_dict[graph_id])
 
     def update_graph_dados_hist(self, dados):
-        
-        if dados != None:
+
+        if dados is not None:
             for graph_id in self.graph_ids:
 
                 self.ids[graph_id].clearPlots()
-                timestamps = dados['timestamp']
 
-                for key,value in dados.items():
-                    if key == 'timestamp':
+                for key, value in dados.items():
+                    if key == "timestamp":
                         continue
                     elif key == self.graph_id_tag[graph_id]:
-                        p = LinePlot(line_width=1.5, color=(0,0,1,1))
-                        p.points = [(x, value[x]) for x in range(0,len(value))]
+                        p = LinePlot(line_width=1.5, color=self.graph_colors[graph_id])
+                        p.points = [(x, value[x]) for x in range(0, len(value))]
                         self.ids[graph_id].add_plot(p)
-                        self.ids.graph.update_x_labels(dados['timestamp'])
+                        self.ids[graph_id].update_x_labels(dados["timestamp"])
 
 
 class MyRoundedRectangle(RoundedRectangle):
@@ -190,8 +200,8 @@ class ObjectWidget(Widget):
         return [self.width, self.height]
 
     def new_pos_hint(self, pos_hint):
-        """ Calcula novo pos_hint considerando as bordas da imagem causada pela diferença
-            de tamanho entra a imagem da esteira e o widget onde ela foi inserida
+        """Calcula novo pos_hint considerando as bordas da imagem causada pela diferença
+        de tamanho entra a imagem da esteira e o widget onde ela foi inserida
         """
 
         parent_size = self.size
@@ -206,12 +216,14 @@ class ObjectWidget(Widget):
         new_pos_hint = copy.deepcopy(pos_hint)
 
         # ajusta o pos_hint proporcionalmente a diferença de largura da imagem e o widget pai
-        new_pos_hint["center_x"] = (pos_hint["center_x"] - 0.5) * (img_width / parent_size[0]) + 0.5
+        new_pos_hint["center_x"] = (pos_hint["center_x"] - 0.5) * (
+            img_width / parent_size[0]
+        ) + 0.5
 
         return new_pos_hint
 
     def set_rect_pos_px(self, position_px):
-        """ Muda posicao da caixa em relação a imagem da esteira em pixels """
+        """Muda posicao da caixa em relação a imagem da esteira em pixels"""
 
         self.rect_pos_px = position_px
         self.rect_pos_hint = self.px2pos_hint(position_px)
@@ -219,7 +231,7 @@ class ObjectWidget(Widget):
         self.rect.update_position(new_pos_hint, parent_size=self.size)
 
     def px2pos_hint(self, pos_px):
-        """ Calcula o pos_hint relativo a imagem da esteira """
+        """Calcula o pos_hint relativo a imagem da esteira"""
 
         pos_hint_x = pos_px[0] / self.size_img[0]
         pos_hint_y = (self.size_img[1] - pos_px[1]) / self.size_img[1]

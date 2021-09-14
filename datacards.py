@@ -33,7 +33,7 @@ class DataCard(MDCard):
                 print(e)
             traceback.print_exc()
 
-    def write_data(self,object=None,value=None,*args):
+    def write_data(self, object=None, value=None, *args):
         try:
             if self._client.is_open():
                 self._lock.acquire()
