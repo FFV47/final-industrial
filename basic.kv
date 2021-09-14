@@ -1,4 +1,4 @@
-#: kivy 2.0.0
+#:kivy 2.0.0
 
 <MainWidget>:
     BoxLayout:
@@ -24,13 +24,13 @@
                         Color:
                             rgba: 0.80, 0.80, 0.80, 1
                         Rectangle:
-                            
+
                             size: self.size
                     Image:
                         id: esteira_img
                         source: 'imgs/A.M Turing.png'
-                        
-                    
+
+
                     MDTextField:
                         id: hostname
                         text: '127.0.0.1'
@@ -161,7 +161,7 @@
 
     BoxLayout:
         orientation: 'vertical'
-        size_hint:(0.01,0.01) 
+        size_hint:(0.01,0.01)
     TimeSeriesGraph:
         id: graph_G
         xlabel:'Green'
@@ -558,7 +558,7 @@
                     text: "Cor_R"
                     # halign: "left"
                     valign: "bottom"
-              
+
                 MDCheckbox:
                     id: graph_G
                     size: dp(48), dp(48)
@@ -665,7 +665,3 @@
                     size_hint:(1,0.8)
                     halign:'center'
                     valign:'middle'
-                
-
-
-       

@@ -6,18 +6,16 @@ from time import sleep
 
 from kivy.clock import Clock
 from kivy.core.window import Window
-from kivymd.uix.screen import MDScreen
-from kivymd.uix.snackbar import Snackbar
 from kivymd.uix.button import MDFlatButton
 from kivymd.uix.dialog import MDDialog
-from kivymd.uix.boxlayout import BoxLayout
+from kivymd.uix.screen import MDScreen
+from kivymd.uix.snackbar import Snackbar
 from pyModbusTCP.client import ModbusClient
 
 from datacards import CardCoil, CardHoldingRegister, CardInputRegister
-from frontend import DataGraphWidget, ObjectWidget, NewTagContent, GraphConfigContent
+from frontend import DataGraphWidget, GraphConfigContent, NewTagContent, ObjectWidget
 from models import EsteiraPrincipal, EsteiraSecundaria, Filtro
 from orm_engine import init_db
-import traceback
 
 
 class MainWidget(MDScreen):
