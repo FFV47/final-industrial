@@ -8,14 +8,14 @@ pontos):
    - [X] (8 pontos) Comunicação MODBUS com o CLP da planta
    - [X] (5 pontos) Tensão da rede, corrente RMS, potência de entrada, velocidade
      da esteira, rotação do motor, frequência do inversor, temperatura do estator
-   - [ ] (7 pontos) Gráficos: Cores (RGB) e Peso do objeto.Antônio
+   - [X] (7 pontos) Gráficos: Cores (RGB) e Peso do objeto.
 <!--  -->
 1. Capacidade de atuação no sistema (12 pontos):
 
-   - [ ] (2 pontos) Ligar/desligar o processo Antônio
-   - [ ] (1 pontos) Ligar/desligar o atuador da esteira principal (inserção de novos objetos) Antonio
-   - [ ] (1 pontos) Mudança na frequência de operação do motor Antonio
-   - [ ] (8 pontos) Mudança nos filtros do Classificador Antonio
+   - [X] (2 pontos) Ligar/desligar o processo
+   - [X] (1 pontos) Ligar/desligar o atuador da esteira principal (inserção de novos objetos) 
+   - [X] (1 pontos) Mudança na frequência de operação do motor 
+   - [X] (8 pontos) Mudança nos filtros do Classificador 
 <!--  -->
 3. Interface gráfica que represente de forma fidedigna o processo (28 pontos):
 
@@ -23,8 +23,8 @@ pontos):
    - [X] (7 pontos) Pelo menos uma animação no supervisório (deslocamento do objeto
      na esteira, classificação, etc)
    - [X] (2 pontos) Menu de configurações
-   - [ ] (2 pontos) Mecanismos para atuação no processo (ver item 2)
-   - [ ] (2 pontos) Separação de telas (monitoramento em tempo real e busca de dados históricos)
+   - [X] (2 pontos) Mecanismos para atuação no processo (ver item 2)
+   - [X] (2 pontos) Separação de telas (monitoramento em tempo real e busca de dados históricos)
    - [X] (7 pontos) Deverá utilizar o framework kivyMD
 <!--  -->
 4. (7 pontos) Módulo de busca de dados históricos (15 pontos):

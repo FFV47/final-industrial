@@ -30,15 +30,101 @@ class NewTagContent(BoxLayout):
         self.ids['filtro_est_1_massa'].active = not modbusdata['filtro_est_1']
         self.ids['filtro_est_2_massa'].active = not modbusdata['filtro_est_2']
         self.ids['filtro_est_3_massa'].active = not modbusdata['filtro_est_3']
+
+
+class GraphConfigContent(BoxLayout):
+    def __init__(self, update_func, **kwargs):
+        self.update_func = update_func
+        self.graph_type = 'realtime'
+        super().__init__(**kwargs)
+
+    def update_config(self, checkbox, value, filt_key, graph_type=None):
+        if self.graph_type != graph_type:
+            if isinstance(value,bool):
+                self.update_func(filt_key, value)
+
+    # def update_content(self, modbusdata):
+    #     ids = self.ids.keys()
+    #     valid_keys = set(ids).intersection(modbusdata.keys())
+    #     for key in valid_keys:
+    #         self.ids[key].active = modbusdata[key]
+    #     self.ids['filtro_est_1_massa'].active = not modbusdata['filtro_est_1']
+    #     self.ids['filtro_est_2_massa'].active = not modbusdata['filtro_est_2']
+    #     self.ids['filtro_est_3_massa'].active = not modbusdata['filtro_est_3']
         
 
 
 class DataGraphWidget(BoxLayout):
     def __init__(self, xmax, plot_color, **kwargs):
         super().__init__(**kwargs)
-        self.plot = LinePlot(line_width=1.5, color=plot_color)
-        self.ids.graph.add_plot(self.plot)
-        self.ids.graph.xmax = xmax
+
+        self.graph_type = 'realtime'
+
+        self.graph_dict = {}
+
+        self.plot = LinePlot(line_width=1.5, color=(1,1,1,1))
+        self.ids.graph_peso.add_plot(self.plot)
+        self.ids.graph_peso.xmax = xmax
+
+        self.graph_dict["graph_peso"] = self.ids["graph_peso"]
+
+        self.plot = LinePlot(line_width=1.5, color=(1,0,0,1))
+        self.ids.graph_R.add_plot(self.plot)
+        self.ids.graph_R.xmax = xmax
+
+        self.graph_dict["graph_R"] = self.ids["graph_R"]
+
+        self.plot = LinePlot(line_width=1.5, color=(0,1,0,1))
+        self.ids.graph_G.add_plot(self.plot)
+        self.ids.graph_G.xmax = xmax
+        
+        self.graph_dict["graph_G"] = self.ids["graph_G"]
+
+        self.plot = LinePlot(line_width=1.5, color=(0,0,1,1))
+        self.ids.graph_B.add_plot(self.plot)
+        self.ids.graph_B.xmax = xmax
+
+        self.graph_dict["graph_B"] = self.ids["graph_B"]
+
+        self.graph_ids = ["graph_peso", "graph_R", "graph_G", "graph_B"]
+        self.active_graphs = {"graph_peso":True, "graph_R":True, "graph_G":True, "graph_B":True}
+        graph_id_tag = {"graph_peso": "peso_obj", "graph_R": "cor_obj_R", "graph_G": "cor_obj_G", "graph_B": "cor_obj_B"}
+
+    def update_graph_config(self, graph_type, show_graphs):
+        if self.graph_type != graph_type:
+            self.graph_type = graph_type
+            update_graph_type = True
+        else:
+            update_graph_type = False 
+
+        if update_graph_type:
+            for graph in self.graph_dict.values():
+                graph.clearPlots()
+        for graph_id in self.graph_ids:
+            graph = self.graph_dict[graph_id]
+            if self.active_graphs[graph_id] != show_graphs[graph_id]:
+                self.active_graphs[graph_id] = show_graphs[graph_id]
+                if show_graphs[graph_id]:
+                    self.add_widget(self.graph_dict[graph_id])
+                else:
+                    self.remove_widget(self.graph_dict[graph_id])
+
+    def update_graph_dados_hist(self, dados):
+        
+        if dados != None:
+            for graph_id in self.graph_ids:
+
+                self.ids[graph_id].clearPlots()
+                timestamps = dados['timestamp']
+
+                for key,value in dados.items():
+                    if key == 'timestamp':
+                        continue
+                    elif key == self.graph_id_tag[graph_id]:
+                        p = LinePlot(line_width=1.5, color=(0,0,1,1))
+                        p.points = [(x, value[x]) for x in range(0,len(value))]
+                        self.ids[graph_id].add_plot(p)
+                        self.ids.graph.update_x_labels(dados['timestamp'])
 
 
 class MyRoundedRectangle(RoundedRectangle):

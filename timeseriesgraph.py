@@ -119,3 +119,4 @@ class TimeSeriesGraph(Graph):
             self.update_x_labels()
         except Exception as e:
             print(e.args)
+

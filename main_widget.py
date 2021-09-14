@@ -10,13 +10,14 @@ from kivymd.uix.screen import MDScreen
 from kivymd.uix.snackbar import Snackbar
 from kivymd.uix.button import MDFlatButton
 from kivymd.uix.dialog import MDDialog
+from kivymd.uix.boxlayout import BoxLayout
 from pyModbusTCP.client import ModbusClient
 
 from datacards import CardCoil, CardHoldingRegister, CardInputRegister
-from frontend import DataGraphWidget, ObjectWidget, NewTagContent
+from frontend import DataGraphWidget, ObjectWidget, NewTagContent, GraphConfigContent
 from models import EsteiraPrincipal, EsteiraSecundaria, Filtro
 from orm_engine import init_db
-
+import traceback
 
 class MainWidget(MDScreen):
 
@@ -48,9 +49,15 @@ class MainWidget(MDScreen):
             tag_name = tag['description']
             self._modbusdata[tag_name] = 0
 
-        self._current_obj = {"peso_obj": 0}
+
+        self._current_obj = {}
+        self._current_obj["peso_obj"] = 0
         self.new_obj = False
-        self.rectangle: ObjectWidget
+        # self.rectangle: ObjectWidget
+        
+        self._current_obj["cor_obj_R"] = 0
+        self._current_obj["cor_obj_G"] = 0
+        self._current_obj["cor_obj_B"] = 0
 
         self._graph = DataGraphWidget(20, (1, 0, 0, 1))
         self.ids.graph_nav.add_widget(self._graph)
@@ -61,6 +68,10 @@ class MainWidget(MDScreen):
         self._est_nc_list = []
 
         self.dialog = None
+        self.dialog_hist = None
+
+        # pode ser do tipo 'realtime' ou 'hist'
+        self.graph_type = 'realtime'
 
         # self.moving_obj = self.create_new_obj([760,154],(1,0,0,1))
         # self.moving_obj.move_x([150,650])
@@ -100,7 +111,62 @@ class MainWidget(MDScreen):
     def close_dialog(self, *args):
         self.dialog.dismiss(force=True)
 
+    
+    def show_dialog_hist(self):
+        if not self.dialog_hist:
+            self.dialog_hist = MDDialog(
+                title = "Dados Históricos",
+                type = "custom",
+                content_cls = GraphConfigContent(self.read_dados_historicos),
+                buttons = [
+                    MDFlatButton(
+                        text='Fechar', on_release=self.close_dialog_hist
+                    ),
+                    MDFlatButton(
+                        text='Salvar', on_release=self.update_graph
+                    ),
+                ],
+            )
+            # self.dialog_hist.content_cls.update_content(self._modbusdata)
+        
+        self.dialog_hist.open()
+    
+    def read_dados_historicos(self, timestamps, cols):
+        try:
+            init_date = datetime.strptime(
+                timestamps[0], "%d/%m/%Y %H:%M:%S"
+            )
+            final_date = datetime.strptime(
+                timestamps[1], "%d/%m/%Y %H:%M:%S"
+            )
 
+            self._lock.acquire()
+            query = self._session.query(EsteiraPrincipal).filter(EsteiraPrincipal.timestamp.between(init_date, final_date)).all()
+            self._lock.release()
+            
+            dados = {}
+            for col in cols:
+                if col == "timestamp":
+                    dados[col] = [
+                        getattr(obj, col).strftime("%d/%m/%Y %H:%M:%S") for obj in query
+                    ]
+                else:
+                    dados[col] = [getattr(obj, col) for obj in query]
+
+            if dados is None or len(dados["timestamp"]) == 0:
+                return None
+
+            return dados
+
+        except Exception as e:
+            print("Erro na coleta de dados -> ", e.args[0])
+            traceback.print_exc()
+    
+    def close_dialog_hist(self, *args):
+        self.dialog_hist.dismiss(force=True)
+        
+    
+    
     def create_datacards(self):
         """
         Cria os cards widgets na interface
@@ -123,7 +189,9 @@ class MainWidget(MDScreen):
                 self._modclient.port = int(self.ids.port.text)
 
                 Window.set_system_cursor("wait")
-                if self._modclient.open():
+                self._modclient.open()
+                Window.set_system_cursor("arrow")
+                if self._modclient.is_open():
                     self._start_process()
 
                     Snackbar(
@@ -133,7 +201,6 @@ class MainWidget(MDScreen):
                     #     card.update_data()
                 else:
                     print("Não foi possível conectar ao servidor")
-                Window.set_system_cursor("arrow")
 
                 # for card in self.ids.modbus_data.children:
                 #     if card.tag['type'] == "holding" or card.tag['type'] == "coil":
@@ -310,8 +377,39 @@ class MainWidget(MDScreen):
 
         self.check_num_objs()
 
-        self._graph.ids.graph.updateGraph((datetime.now(), self._modbusdata["tensao"]), 0)
-        # print(self.ids.esteira_img.size)
+        if self.graph_type == 'realtime':
+            self._graph.ids.graph_peso.updateGraph((datetime.now(), self._modbusdata["peso_obj"]), 0)
+            self._graph.ids.graph_R.updateGraph((datetime.now(),self._modbusdata["cor_obj_R"]),0)
+            self._graph.ids.graph_G.updateGraph((datetime.now(),self._modbusdata["cor_obj_G"]),0)
+            self._graph.ids.graph_B.updateGraph((datetime.now(),self._modbusdata["cor_obj_B"]),0)
+
+    def update_graph(self,button):
+
+        show_peso = self.dialog_hist.content_cls.ids.graph_peso.active
+        show_R = self.dialog_hist.content_cls.ids.graph_R.active
+        show_G = self.dialog_hist.content_cls.ids.graph_G.active
+        show_B = self.dialog_hist.content_cls.ids.graph_B.active
+
+        graph_id_tag = {"graph_peso": "peso_obj", "graph_R": "cor_obj_R", "graph_G": "cor_obj_G", "graph_B": "cor_obj_B"}
+        show_graphs = {"graph_peso": show_peso, "graph_R":show_R, "graph_G":show_G, "graph_B":show_B}
+
+        if self.dialog_hist.content_cls.ids.realtime.active:
+            self.graph_type = 'realtime'
+        else:
+            self.graph_type = 'hist'
+            timestamps = [self.dialog_hist.content_cls.ids.init_date_txt.text, self.dialog_hist.content_cls.ids.final_date_txt.text]
+            print(timestamps)
+            cols = ['timestamp']
+            for key,value in show_graphs.items():
+                if value == True:
+                    cols.append(graph_id_tag[key])
+            dados_hist = self.read_dados_historicos(timestamps, cols)
+            print(dados_hist)
+
+        self._graph.update_graph_config(self.graph_type, show_graphs)
+        self._graph.update_graph_dados_hist(dados_hist)
+
+
 
     def check_num_objs(self):
         if (
@@ -368,63 +466,6 @@ class MainWidget(MDScreen):
                 1,
             )
         )
-
-    def get_data_db(self):
-        """
-        Coleta as informacoes da interface fornecidas pelo usuário e requisita a
-        busca na DB
-        """
-        pass
-        # try:
-        #     init_date = datetime.strptime(
-        #         self._hist_graph.ids.txt_init_time.text, "%d/%m/%Y %H:%M:%S"
-        #     )
-        #     final_date = datetime.strptime(
-        #         self._hist_graph.ids.txt_final_time.text, "%d/%m/%Y %H:%M:%S"
-        #     )
-
-        #     cols = []
-        #     for sensor in self._hist_graph.ids.sensores.children:
-        #         if sensor.ids.check_box.active:
-        #             cols.append(sensor.id)
-
-        #     if init_date is None or final_date is None or len(cols) == 0:
-        #         return
-
-        #     cols.append("timestamp")
-
-        #     self._lock.acquire()
-
-        #     self._lock.release()
-
-        #     dados = {}
-        #     for col in cols:
-        #         if col == "timestamp":
-        #             dados[col] = [
-        #                 getattr(obj, col).strftime("%d/%m/%Y %H:%M:%S") for obj in query
-        #             ]
-        #         else:
-        #             dados[col] = [getattr(obj, col) for obj in query]
-
-        #     if dados is None or len(dados["timestamp"]) == 0:
-        #         return
-
-        #     self._hist_graph.ids.graph.clearPlots()
-
-        #     for key, value in dados.items():
-        #         if key == "timestamp":
-        #             continue
-        #         p = LinePlot(line_width=1.5, color=self._tags[key]["color"])
-        #         p.points = [(x, value[x]) for x in range(len(value))]
-        #         self._hist_graph.ids.graph.add_plot(p)
-
-        #     self._hist_graph.ids.graph.xmax = len(dados[cols[0]])
-        #     self._hist_graph.ids.graph.update_x_labels(
-        #         [datetime.strptime(x, "%d/%m/%Y %H:%M:%S") for x in dados["timestamp"]]
-        #     )
-
-        # except Exception as e:
-        #     print("Erro na coleta de dados -> ", e.args[0])
 
     def _write_to_DB(self):
         principal = EsteiraPrincipal(

@@ -22,7 +22,7 @@
                     id: capa
                     canvas.before:
                         Color:
-                            rgba: 0.85, 0.85, 0.85, 1
+                            rgba: 0.80, 0.80, 0.80, 1
                         Rectangle:
                             
                             size: self.size
@@ -104,19 +104,31 @@
                 text: 'Gráficos'
                 icon: 'chart-line'
                 id: graph_nav
-
+                FloatLayout:
+                    id:graph_nav
+                    canvas.before:
+                        # Color:
+                        # rgba: 0.75, 0.75, 0.75, 1
+                        Rectangle:
+                            pos: self.pos
+                            size: self.size
+                MDFloatingActionButton:
+                    icon: "graph"
+                    on_release: root.show_dialog_hist()
+                    pos_hint: {'center_x': 0.95, 'center_y': 0.03}
 
 
 <DataGraphWidget>:
     orientation: 'vertical'
+    size_hint:(1,1)
     TimeSeriesGraph:
-        id: graph
-        xlabel: 'Horário'
-        ylabel: 'Valor'
+        id: graph_peso
+        xlabel: 'Peso'
+        ylabel: 'Kg'
         background_color: 0.5,0.5,0.5,0.5
         x_ticks_minor: 1
         x_ticks_major: 5
-        y_ticks_major: 100
+        y_ticks_major: 150
         y_grid_label: True
         x_grid_label: True
         padding: 5
@@ -124,8 +136,70 @@
         y_grid: True
         xmin: 0
         ymin: 0
-        ymax: 500
+        ymax: 1100
 
+    BoxLayout:
+        orientation: 'vertical'
+        size_hint:(0.01,0.01)
+    TimeSeriesGraph:
+        id: graph_R
+        xlabel:'Red'
+        ylabel:'Nvl'
+        background_color:0.5,0.5,0.5,0.5
+        x_ticks_minor: 1
+        x_ticks_major: 5
+        y_ticks_major: 55
+        y_grid_label:True
+        x_grid_label:True
+        padding: 5
+        x_grid:True
+        y_grid:True
+        xmin: 0
+        xmax:20
+        ymin: 0
+        ymax: 310
+
+    BoxLayout:
+        orientation: 'vertical'
+        size_hint:(0.01,0.01) 
+    TimeSeriesGraph:
+        id: graph_G
+        xlabel:'Green'
+        ylabel:'Nvl'
+        background_color:0.5,0.5,0.5,0.5
+        x_ticks_minor: 1
+        x_ticks_major: 5
+        y_ticks_major: 55
+        y_grid_label:True
+        x_grid_label:True
+        padding: 5
+        x_grid:True
+        y_grid:True
+        xmin: 0
+        xmax: 20
+        ymin: 0
+        ymax: 310
+
+    BoxLayout:
+        orientation: 'vertical'
+        size_hint:(0.01,0.01)
+    TimeSeriesGraph:
+        id: graph_B
+        xlabel:'Blue'
+        ylabel:'Nvl'
+        background_color:0.5,0.5,0.5,0.5
+        x_ticks_minor: 1
+        x_ticks_major: 5
+        y_ticks_major: 55
+        y_grid_label:True
+        x_grid_label:True
+        padding: 5
+        x_grid:True
+        y_grid:True
+        xmin: 0
+        xmax: 20
+        ymin: 0
+        ymax: 310
 
 <DataCard>:
     orientation: 'vertical'
@@ -416,3 +490,182 @@
                     multiline: False
             MDSeparator:
                 height: '1dp'
+
+<GraphConfigContent>
+    orientation: "horizontal"
+    spacing: "12dp"
+    adaptive_height: True
+    size_hint_y: None
+    height: "500dp"
+    BoxLayout:
+        orientation: "vertical"
+        BoxLayout:
+            orientation: "vertical"
+            MDSeparator:
+                height: '1dp'
+            MDLabel:
+                # size_hint: 0.4,1
+                text: "Gráficos Históricos"
+                halign: "center"
+                valign: "bottom"
+            BoxLayout:
+                orientation: "horizontal"
+                MDCheckbox:
+                    group: 'graph_type'
+                    id: realtime
+                    size: dp(48), dp(48)
+                    size_hint: None,None
+                    pos_hint: {'center_x': 0.5, 'center_y': 0.5}
+                    #on_active: root.update_config(filt_key="filtro_est_1", graph_type="hist", *args)
+                MDLabel:
+                    size_hint: 0.4,1
+                    text: "Tempo Real"
+                    # halign: "left"
+                    valign: "bottom"
+                MDCheckbox:
+                    group: 'graph_type'
+                    id: hist
+                    size: dp(48), dp(48)
+                    size_hint: None,None
+                    pos_hint: {'center_x': 0.5, 'center_y': 0.5}
+                    #on_active: root.update_config(filt_key="filtro_est_1", graph_type="realtime", *args)
+                MDLabel:
+                    size_hint: 0.4,1
+                    text: "Dados Históricos"
+                    # halign: "left"
+                    valign: "bottom"
+            BoxLayout:
+                orientation: "horizontal"
+                MDCheckbox:
+                    id: graph_peso
+                    size: dp(48), dp(48)
+                    size_hint: None,None
+                    pos_hint: {'center_x': 0.5, 'center_y': 0.5}
+                    # on_active: root.update_config(filt_key="filtro_est_1", graph_type="realtime", *args)
+                MDLabel:
+                    size_hint: 0.4,1
+                    text: "Peso"
+                    # halign: "left"
+                    valign: "bottom"
+                MDCheckbox:
+                    id: graph_R
+                    size: dp(48), dp(48)
+                    size_hint: None,None
+                    pos_hint: {'center_x': 0.5, 'center_y': 0.5}
+                    # on_active: root.update_config(filt_key="filtro_est_1", graph_type="realtime", *args)
+                MDLabel:
+                    size_hint: 0.4,1
+                    text: "Cor_R"
+                    # halign: "left"
+                    valign: "bottom"
+              
+                MDCheckbox:
+                    id: graph_G
+                    size: dp(48), dp(48)
+                    size_hint: None,None
+                    pos_hint: {'center_x': 0.5, 'center_y': 0.5}
+                    # on_active: root.update_config(filt_key="filtro_est_1", graph_type="realtime", *args)
+                MDLabel:
+                    size_hint: 0.4,1
+                    text: "Cor_G"
+                    # halign: "left"
+                    valign: "bottom"
+                MDCheckbox:
+                    id: graph_B
+                    size: dp(48), dp(48)
+                    size_hint: None,None
+                    pos_hint: {'center_x': 0.5, 'center_y': 0.5}
+                    # on_active: root.update_config(filt_key="filtro_est_1", graph_type="realtime", *args)
+                MDLabel:
+                    size_hint: 0.4,1
+                    text: "Cor_B"
+                    # halign: "left"
+                    valign: "bottom"
+            # BoxLayout:
+            #     orientation: "horizontal"
+            #     MDCheckbox:
+            #         id: graph_freqdes
+            #         size: dp(48), dp(48)
+            #         size_hint: None,None
+            #         pos_hint: {'center_x': 0.5, 'center_y': 0.5}
+            #         # on_active: root.update_config(filt_key="filtro_est_1", graph_type="realtime", *args)
+            #     MDLabel:
+            #         size_hint: 0.4,1
+            #         text: "freq_des"
+            #         # halign: "left"
+            #         valign: "bottom"
+            #     MDCheckbox:
+            #         id: graph_freqmot
+            #         size: dp(48), dp(48)
+            #         size_hint: None,None
+            #         pos_hint: {'center_x': 0.5, 'center_y': 0.5}
+            #         # on_active: root.update_config(filt_key="filtro_est_1", graph_type="realtime", *args)
+            #     MDLabel:
+            #         size_hint: 0.4,1
+            #         text: "freq_mot"
+            #         # halign: "left"
+            #         valign: "bottom"
+            #     MDCheckbox:
+            #         id: graph_tensao
+            #         size: dp(48), dp(48)
+            #         size_hint: None,None
+            #         pos_hint: {'center_x': 0.5, 'center_y': 0.5}
+            #         # on_active: root.update_config(filt_key="filtro_est_1", graph_type="realtime", *args)
+            #     MDLabel:
+            #         size_hint: 0.4,1
+            #         text: "tesão"
+            #         # halign: "left"
+            #         valign: "bottom"
+            #     MDCheckbox:
+            #         id: graph_rot
+            #         size: dp(48), dp(48)
+            #         size_hint: None,None
+            #         pos_hint: {'center_x': 0.5, 'center_y': 0.5}
+            #         # on_active: root.update_config(filt_key="filtro_est_1", graph_type="realtime", *args)
+            #     MDLabel:
+            #         size_hint: 0.4,1
+            #         text: "rotação"
+            #         # halign: "left"
+            #         valign: "bottom"
+            #     MDCheckbox:
+            #         id: graph_corrente
+            #         size: dp(48), dp(48)
+            #         size_hint: None,None
+            #         pos_hint: {'center_x': 0.5, 'center_y': 0.5}
+            #         # on_active: root.update_config(filt_key="filtro_est_1", graph_type="realtime", *args)
+            #     MDLabel:
+            #         size_hint: 0.4,1
+            #         text: "Corrente"
+            #         # halign: "left"
+            #         valign: "bottom"
+
+            BoxLayout:
+                orientation: "horizontal"
+                MDLabel:
+                    size_hint: (1,0.1)
+                    text:'Dados iniciais\r\n [size=10] (DD\MM\AAAA HH:MM:SS)[/size]'
+                    halign:'center'
+                    markup:True
+                MDTextField:
+                    id: init_date_txt
+                    hint_text:'Digite os dados para consulta'
+                    size_hint:(1,0.8)
+                    halign:'center'
+                    valign:'middle'
+            BoxLayout:
+                orientation: "horizontal"
+                MDLabel:
+                    size_hint: (1,0.1)
+                    text:'Dados Finais\r\n [size=10] (DD\MM\AAAA HH:MM:SS)[/size]'
+                    halign:'center'
+                    markup:True
+                MDTextField:
+                    id: final_date_txt
+                    hint_text:'Digite os dados para consulta'
+                    size_hint:(1,0.8)
+                    halign:'center'
+                    valign:'middle'
+                
+
+
+       
