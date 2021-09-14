@@ -70,98 +70,6 @@ class MainWidget(MDScreen):
         # pode ser do tipo 'realtime' ou 'hist'
         self.graph_type = "realtime"
 
-    def config_planta(self):
-        self.show_dialog()
-        print("Config planta")
-
-    def update_filter(self, filt_key, value):
-        for card in self.ids.modbus_data.children:
-            if card.tag["description"] == filt_key:
-                if card.tag["type"] == "holding":
-                    card.set_data(int(value * 255))
-                    card.write_data(value=int(value * 255))
-                else:
-                    card.set_data(value)
-                    card.write_data(value=value)
-
-    def show_dialog(self):
-        if not self.dialog:
-            self.dialog = MDDialog(
-                title="Configuração dos Filtros",
-                type="custom",
-                content_cls=NewTagContent(self.update_filter),
-                buttons=[
-                    MDFlatButton(text="Fechar", on_release=self.close_dialog),
-                ],
-            )
-            self.dialog.content_cls.update_content(self._modbusdata)
-
-        self.dialog.open()
-
-    def close_dialog(self, *args):
-        self.dialog.dismiss(force=True)
-
-    def show_dialog_hist(self):
-        if not self.dialog_hist:
-            self.dialog_hist = MDDialog(
-                title="Dados Históricos",
-                type="custom",
-                content_cls=GraphConfigContent(self.read_dados_historicos),
-                buttons=[
-                    MDFlatButton(text="Fechar", on_release=self.close_dialog_hist),
-                    MDFlatButton(text="Salvar", on_release=self.update_graph),
-                ],
-            )
-
-        self.dialog_hist.open()
-
-    def read_dados_historicos(self, timestamps, cols):
-        try:
-            init_date = datetime.strptime(timestamps[0], "%d/%m/%Y %H:%M:%S")
-            final_date = datetime.strptime(timestamps[1], "%d/%m/%Y %H:%M:%S")
-
-            self._lock.acquire()
-            query = (
-                self._session.query(EsteiraPrincipal)
-                .filter(EsteiraPrincipal.timestamp.between(init_date, final_date))
-                .all()
-            )
-            self._lock.release()
-
-            dados = {}
-            for col in cols:
-                dados[col] = [getattr(obj, col) for obj in query]
-
-            if dados is None or len(dados["timestamp"]) == 0:
-                return None
-
-            return dados
-
-        except Exception as e:
-            print("Erro na coleta de dados -> ", e.args)
-            traceback.print_exc()
-
-    def close_dialog_hist(self, *args):
-        self.dialog_hist.dismiss(force=True)
-
-    def create_datacards(self):
-        """
-        Cria os cards widgets na interface
-        """
-        for tag in self._tags:
-            if tag["type"] == "input":
-                self.ids.modbus_data.add_widget(
-                    CardInputRegister(tag, self._modclient, lock=self._lock)
-                )
-            elif tag["type"] == "holding":
-                self.ids.modbus_data.add_widget(
-                    CardHoldingRegister(tag, self._modclient, lock=self._lock)
-                )
-            elif tag["type"] == "coil":
-                self.ids.modbus_data.add_widget(
-                    CardCoil(tag, self._modclient, lock=self._lock)
-                )
-
     def connect(self):
         self._ev = []
         if self.ids.bt_con.text == "CONECTAR":
@@ -203,7 +111,6 @@ class MainWidget(MDScreen):
         try:
             if self._modclient.is_open():
                 self._read_data()
-                self._update_filter_DB()
                 # Separa a interface do gerenciamento de dados
 
                 self.update_thread = Thread(target=self._updater_loop)
@@ -357,6 +264,136 @@ class MainWidget(MDScreen):
                 (datetime.now(), self._modbusdata["cor_obj_B"]), 0
             )
 
+    def create_new_obj(self, color):
+
+        new_obj = ObjectWidget(
+            size_img=self.size_img_esteira,
+            obj_size=(50, 50),
+            radius=[10, 10, 10, 10],
+            pos_px=[762, 155],
+            color=color,
+        )
+        self.ids.desenho.add_widget(new_obj)
+        return new_obj
+
+    def check_num_objs(self):
+        if (
+            self._modbusdata["num_obj_est_1"] < len(self._est_1_list)
+            and len(self._est_1_list) > 0
+        ):
+            obj = self._est_1_list.pop(0)
+            self.ids.desenho.remove_widget(obj)
+        if (
+            self._modbusdata["num_obj_est_2"] < len(self._est_2_list)
+            and len(self._est_2_list) > 0
+        ):
+            obj = self._est_2_list.pop(0)
+            self.ids.desenho.remove_widget(obj)
+        if (
+            self._modbusdata["num_obj_est_3"] < len(self._est_3_list)
+            and len(self._est_3_list) > 0
+        ):
+            obj = self._est_3_list.pop(0)
+            self.ids.desenho.remove_widget(obj)
+        if (
+            self._modbusdata["num_obj_est_nc"] < len(self._est_nc_list)
+            and len(self._est_nc_list) > 0
+        ):
+            obj = self._est_nc_list.pop(0)
+            self.ids.desenho.remove_widget(obj)
+
+    def config_planta(self):
+        self.show_dialog()
+        print("Config planta")
+
+    def update_filter(self, filt_key, value):
+        for card in self.ids.modbus_data.children:
+            if card.tag["description"] == filt_key:
+                if card.tag["type"] == "holding":
+                    card.set_data(int(value * 255))
+                    card.write_data(value=int(value * 255))
+                else:
+                    card.set_data(value)
+                    card.write_data(value=value)
+
+    def show_dialog(self):
+        if not self.dialog:
+            self.dialog = MDDialog(
+                title="Configuração dos Filtros",
+                type="custom",
+                content_cls=NewTagContent(self.update_filter),
+                buttons=[
+                    MDFlatButton(text="Fechar", on_release=self.close_dialog),
+                ],
+            )
+            self.dialog.content_cls.update_content(self._modbusdata)
+
+        self.dialog.open()
+
+    def close_dialog(self, *args):
+        self.dialog.dismiss(force=True)
+
+    def show_dialog_hist(self):
+        if not self.dialog_hist:
+            self.dialog_hist = MDDialog(
+                title="Dados Históricos",
+                type="custom",
+                content_cls=GraphConfigContent(self.read_dados_historicos),
+                buttons=[
+                    MDFlatButton(text="Fechar", on_release=self.close_dialog_hist),
+                    MDFlatButton(text="Salvar", on_release=self.update_graph),
+                ],
+            )
+
+        self.dialog_hist.open()
+
+    def read_dados_historicos(self, timestamps, cols):
+        try:
+            init_date = datetime.strptime(timestamps[0], "%d/%m/%Y %H:%M:%S")
+            final_date = datetime.strptime(timestamps[1], "%d/%m/%Y %H:%M:%S")
+
+            self._lock.acquire()
+            query = (
+                self._session.query(EsteiraPrincipal)
+                .filter(EsteiraPrincipal.timestamp.between(init_date, final_date))
+                .all()
+            )
+            self._lock.release()
+
+            dados = {}
+            for col in cols:
+                dados[col] = [getattr(obj, col) for obj in query]
+
+            if dados is None or len(dados["timestamp"]) == 0:
+                return None
+
+            return dados
+
+        except Exception as e:
+            print("Erro na coleta de dados -> ", e.args)
+            traceback.print_exc()
+
+    def close_dialog_hist(self, *args):
+        self.dialog_hist.dismiss(force=True)
+
+    def create_datacards(self):
+        """
+        Cria os cards widgets na interface
+        """
+        for tag in self._tags:
+            if tag["type"] == "input":
+                self.ids.modbus_data.add_widget(
+                    CardInputRegister(tag, self._modclient, lock=self._lock)
+                )
+            elif tag["type"] == "holding":
+                self.ids.modbus_data.add_widget(
+                    CardHoldingRegister(tag, self._modclient, lock=self._lock)
+                )
+            elif tag["type"] == "coil":
+                self.ids.modbus_data.add_widget(
+                    CardCoil(tag, self._modclient, lock=self._lock)
+                )
+
     def update_graph(self, button):
 
         show_peso = self.dialog_hist.content_cls.ids.graph_peso.active
@@ -392,34 +429,7 @@ class MainWidget(MDScreen):
                 if value is True:
                     cols.append(graph_id_tag[key])
             dados_hist = self.read_dados_historicos(timestamps, cols)
-
             self._graph.update_graph_dados_hist(dados_hist)
-
-    def check_num_objs(self):
-        if (
-            self._modbusdata["num_obj_est_1"] < len(self._est_1_list)
-            and len(self._est_1_list) > 0
-        ):
-            obj = self._est_1_list.pop(0)
-            self.ids.desenho.remove_widget(obj)
-        if (
-            self._modbusdata["num_obj_est_2"] < len(self._est_2_list)
-            and len(self._est_2_list) > 0
-        ):
-            obj = self._est_2_list.pop(0)
-            self.ids.desenho.remove_widget(obj)
-        if (
-            self._modbusdata["num_obj_est_3"] < len(self._est_3_list)
-            and len(self._est_3_list) > 0
-        ):
-            obj = self._est_3_list.pop(0)
-            self.ids.desenho.remove_widget(obj)
-        if (
-            self._modbusdata["num_obj_est_nc"] < len(self._est_nc_list)
-            and len(self._est_nc_list) > 0
-        ):
-            obj = self._est_nc_list.pop(0)
-            self.ids.desenho.remove_widget(obj)
 
     def stop_refresh(self):
 
@@ -427,27 +437,15 @@ class MainWidget(MDScreen):
         self._is_update_enabled = False
         self._modclient.close()
 
-    def create_new_obj(self, color):
-
-        new_obj = ObjectWidget(
-            size_img=self.size_img_esteira,
-            obj_size=(50, 50),
-            radius=[10, 10, 10, 10],
-            pos_px=[762, 155],
-            color=color,
-        )
-        self.ids.desenho.add_widget(new_obj)
-        return new_obj
-
-    def update_obj_color(self):
-        self.rectangle.update_color(
-            (
-                self._current_obj["cor_obj_R"],
-                self._current_obj["cor_obj_G"],
-                self._current_obj["cor_obj_B"],
-                1,
-            )
-        )
+    # def update_obj_color(self):
+    #     self.rectangle.update_color(
+    #         (
+    #             self._current_obj["cor_obj_R"],
+    #             self._current_obj["cor_obj_G"],
+    #             self._current_obj["cor_obj_B"],
+    #             1,
+    #         )
+    #     )
 
     def _write_to_DB(self):
         principal = EsteiraPrincipal(
@@ -481,13 +479,6 @@ class MainWidget(MDScreen):
             filtro_est_3=self._modbusdata["filtro_est_3"],
         )
 
-        self._lock.acquire()
-        self._session.add(principal)
-        self._session.add(secundaria)
-        self._session.commit()
-        self._lock.release()
-
-    def _update_filter_DB(self):
         filtro = Filtro(
             timestamp=datetime.now().replace(microsecond=0),
             cor_r_1=self._modbusdata["filtro_cor_r_1"],
@@ -505,6 +496,8 @@ class MainWidget(MDScreen):
         )
 
         self._lock.acquire()
+        self._session.add(principal)
+        self._session.add(secundaria)
         self._session.add(filtro)
         self._session.commit()
         self._lock.release()
